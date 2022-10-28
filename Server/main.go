@@ -1,13 +1,25 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"os"
+)
 
 func main() {
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
+	engine := gin.Default()
+	// RESTFul,API路由
+	apiRouter := engine.Group("/api")
+	apiRouter.GET("test", func(context *gin.Context) {
+		context.Value("test")
 	})
-	r.Run("127.0.0.1:8080")
+	// Web客户端
+	engine.LoadHTMLFiles("templates/index.html")
+	clientRouter := engine.Group("/")
+	clientRouter.GET("/", func(context *gin.Context) {
+		context.HTML(http.StatusOK, "index.html", nil)
+	})
+	fmt.Println(os.Getwd())
+	engine.Run(":8080")
 }
