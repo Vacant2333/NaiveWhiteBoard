@@ -1,1 +1,3 @@
 # NaiveWhiteBoard
+
+Server: go+gin
