@@ -9583,7 +9583,7 @@ fabric.ElementsParser = function(elements, callback, options, reviver, parsingOp
      * meaning that following zoom to point with the same point will have the visual
      * effect of the zoom originating from that point. The point won't move.
      * It has nothing to do with canvas center or visual center of the viewport.
-     * @param {fabric.Point} point to zoom with respect to
+     * @param {{x: (Number|number|number|Object|*), y: *}} point to zoom with respect to
      * @param {Number} value to set zoom to, less than 1 zooms out
      * @return {fabric.Canvas} instance
      * @chainable true
