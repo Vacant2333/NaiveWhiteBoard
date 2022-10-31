@@ -1,32 +1,15 @@
 const minZoom = 0.5;
 const maxZoom = 5;
-const newLeft = 300;
-const newTop = 300;
-
+// 初始化画布
 var canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
     height: window.innerHeight,
-    backgroundColor: "#f2f2f2"
+    backgroundColor: "#f2f2f2",
 });
 fabric.Object.prototype.transparentCorners = false;
 fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
-
-function Add() {
-    var rect = new fabric.Rect({
-        left: newLeft,
-        top: newTop,
-        fill: '',
-        width: 200,
-        height: 100,
-        objectCaching: false,
-        stroke: 'black',
-        strokeWidth: 4,
-    });
-    canvas.add(rect);
-    canvas.setActiveObject(rect);
-}
 
 // 分组/取消分组
 $("#group").click(function () {
@@ -113,6 +96,31 @@ document.onkeydown = function (e) {
     }
 }
 // 添加元素
-function addElement(e) {
-
+function addElement(type) {
+    let ele;
+    switch(type) {
+        case "Rect":
+            ele = new fabric.Rect();
+            break;
+        case "Circle":
+            ele = new fabric.Circle({radius: 50});
+            break;
+        case "Triangle":
+            ele = new fabric.Triangle();
+            break;
+        case "IText":
+            ele = new fabric.IText("请输入内容...");
+            break
+    }
+    ele.set({
+       "stroke": "black",
+        "width": 200,
+        "height": 200,
+        "left": 300,
+        "top": 300,
+        "fill": "",
+        "strokeWidth": 2
+    });
+    canvas.add(ele);
+    canvas.setActiveObject(ele);
 }
