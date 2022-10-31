@@ -1,6 +1,8 @@
-var canvas = this.__canvas = new fabric.Canvas('board', {
+//var canvas = this.__canvas = new fabric.Canvas('board', {
+var canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
-    height: window.innerHeight
+    height: window.innerHeight,
+    backgroundColor: "#f2f2f2"
 });
 
 // create a rect object
@@ -10,7 +12,7 @@ var img = document.createElement('img');
 img.src = deleteIcon;
 
 fabric.Object.prototype.transparentCorners = false;
-fabric.Object.prototype.cornerColor = 'blue';
+fabric.Object.prototype.cornerColor = 'green';
 fabric.Object.prototype.cornerStyle = 'circle';
 
 function Add() {
@@ -67,8 +69,8 @@ window.onresize = function () {
 
 // 鼠标滚轮调整缩放
 canvas.on('mouse:wheel', function (opt){
-    const delta = opt.e.deltaY // 滚轮，向上滚一下是 -100，向下滚一下是 100
-    let zoom = canvas.getZoom() // 获取画布当前缩放值
+    const delta = opt.e.deltaY
+    let zoom = canvas.getZoom()
     zoom *= 0.999 ** delta
 
     if (zoom > 5) zoom = 5
@@ -85,10 +87,12 @@ canvas.on('mouse:wheel', function (opt){
     opt.e.preventDefault()
     opt.e.stopPropagation()
 })
+
 // 阻止右键菜单
 document.body.oncontextmenu = function(e){
     return false;
 };
+
 // 右键拖拽移动画布
 canvas.on('mouse:down:before', function(opt) {
     if(opt.e.button === 2) {
@@ -96,9 +100,10 @@ canvas.on('mouse:down:before', function(opt) {
         this.selection = false;
         this.lastPosX = opt.e.clientX;
         this.lastPosY = opt.e.clientY;
+        this.setCursor("move")
     }
 });
-canvas.on('mouse:move:before', function(opt) {
+canvas.on('mouse:move', function(opt) {
     if (this.isDragging) {
         var e = opt.e;
         var vpt = this.viewportTransform;
@@ -107,10 +112,12 @@ canvas.on('mouse:move:before', function(opt) {
         this.requestRenderAll();
         this.lastPosX = e.clientX;
         this.lastPosY = e.clientY;
+        this.setCursor("move")
     }
 });
 canvas.on('mouse:up:before', function() {
     this.setViewportTransform(this.viewportTransform);
     this.isDragging = false;
     this.selection = true;
+    this.setCursor("default")
 });
