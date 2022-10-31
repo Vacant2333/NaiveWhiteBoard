@@ -39,22 +39,22 @@ window.onresize = function () {
     canvas.setDimensions({
         width: window.innerWidth,
         height: window.innerHeight
-    })
+    });
 }
 // 鼠标滚轮调整缩放
 canvas.on('mouse:wheel', function (opt){
-    let zoom = canvas.getZoom() * 0.999 ** opt.e.deltaY
-    if (zoom > maxZoom) zoom = maxZoom
-    if (zoom < minZoom) zoom = minZoom
+    let zoom = canvas.getZoom() * 0.999 ** opt.e.deltaY;
+    if (zoom > maxZoom) zoom = maxZoom;
+    if (zoom < minZoom) zoom = minZoom;
     // 以鼠标所在位置为原点缩放
     canvas.zoomToPoint(
         {
             x: opt.e.offsetX,
             y: opt.e.offsetY
         }, zoom
-    )
-    opt.e.preventDefault()
-    opt.e.stopPropagation()
+    );
+    opt.e.preventDefault();
+    opt.e.stopPropagation();
 })
 // 阻止右键菜单
 document.body.oncontextmenu = function(e){
@@ -67,7 +67,7 @@ canvas.on('mouse:down:before', function(opt) {
         this.selection = false;
         this.lastPosX = opt.e.clientX;
         this.lastPosY = opt.e.clientY;
-        this.setCursor("move")
+        this.setCursor("move");
     }
 });
 canvas.on('mouse:move', function(opt) {
@@ -79,22 +79,26 @@ canvas.on('mouse:move', function(opt) {
         this.requestRenderAll();
         this.lastPosX = e.clientX;
         this.lastPosY = e.clientY;
-        this.setCursor("move")
+        this.setCursor("move");
     }
 });
 canvas.on('mouse:up:before', function() {
     this.setViewportTransform(this.viewportTransform);
     this.isDragging = false;
     this.selection = true;
-    this.setCursor("default")
+    this.setCursor("default");
 });
 // 删除键删除元素
 document.onkeydown = function (e) {
     if(e.code === "Backspace") {
-      canvas.getActiveObjects().forEach(function (c) {
-          canvas.remove(c)
-      });
-      canvas.discardActiveObject(null)
+        if(canvas.getActiveObjects().length === 1 && canvas.getActiveObject().type === "i-text") {
+            // 选中的文字区域,不执行删除
+        } else {
+            canvas.getActiveObjects().forEach(function (c) {
+                canvas.remove(c);
+            });
+            canvas.discardActiveObject(null);
+        }
     }
 }
 // 添加元素
@@ -112,7 +116,7 @@ function addElement(type) {
             break;
         case "IText":
             ele = new fabric.IText("请输入内容...");
-            break
+            break;
     }
     ele.set({
        "stroke": "black",
@@ -121,7 +125,7 @@ function addElement(type) {
         "left": window.innerWidth/2-100,
         "top": window.innerHeight/2-100,
         "fill": "",
-        "strokeWidth": 2
+        "strokeWidth": 2,
     });
     canvas.add(ele);
     canvas.setActiveObject(ele);
@@ -137,7 +141,6 @@ ws.onclose = function () {
     tip("连接至服务器失败,请稍后重试");
 }
 ws.onmessage = function(e) {
-    console.log(e.data)
     let reply = JSON.parse(e.data)
     switch (reply["Action"]) {
         case "createWhiteBoard":
@@ -145,8 +148,19 @@ ws.onmessage = function(e) {
                 // 创建成功,进入主界面
                 $(".join").hide();
                 $(".mask").hide();
+                tip("白板创建成功!");
             } else {
-                tip("白板已存在,您可加入该白板")
+                tip("白板已存在,您可加入该白板");
+            }
+            break;
+        case "joinWhiteBoard":
+            if(reply["Success"]) {
+                // 加入成功,进入主界面
+                $(".join").hide();
+                $(".mask").hide();
+                tip("白板加入成功!");
+            } else {
+                tip("白板不存在,您可创建该白板");
             }
             break;
     }
@@ -157,10 +171,10 @@ function createWhiteBoard() {
     if(name.length > 0) {
         ws.send(JSON.stringify({
             "Action": "createWhiteBoard",
-            "Value": name
+            "Value": name,
         }));
     } else {
-        tip("请输入白板名称")
+        tip("请输入白板名称");
     }
 }
 // 加入白板
@@ -169,11 +183,15 @@ function joinWhiteBoard() {
     if(name.length > 0) {
         ws.send(JSON.stringify({
             "Action": "joinWhiteBoard",
-            "Value": name
+            "Value": name,
         }));
     } else {
-        tip("请输入白板名称")
+        tip("请输入白板名称");
     }
+}
+// 添加元素
+function wsAddElement() {
+    
 }
 
 /* 公用方法 */
