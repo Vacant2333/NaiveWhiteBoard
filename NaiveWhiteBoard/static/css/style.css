@@ -11,14 +11,8 @@ html {
 }
 
 .controls {
-    left: 10px;
-    top: 100px;
-}
-
-.control {
     width: 40px;
     left: 10px;
-    top: 100px;
     z-index: 10;
     position: absolute;
     display: inline-block;
@@ -26,7 +20,13 @@ html {
     border-radius: 6px;
 }
 
+/*  */
+.panel {
+
+}
+
 span.tool {
+    cursor: pointer;
     margin: 7px;
     font-size: 26px;
 }
