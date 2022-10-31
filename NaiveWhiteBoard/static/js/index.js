@@ -1,3 +1,4 @@
+// 缩放限制
 const minZoom = 0.5;
 const maxZoom = 5;
 // 初始化画布
@@ -10,7 +11,6 @@ fabric.Object.prototype.transparentCorners = false;
 fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
-
 // 分组/取消分组
 $("#group").click(function () {
     if (!canvas.getActiveObject()) {
@@ -123,4 +123,16 @@ function addElement(type) {
     });
     canvas.add(ele);
     canvas.setActiveObject(ele);
+}
+
+// 初始化WebSocket
+let ws = new WebSocket("ws://" + window.location.host + "/connect")
+ws.onopen = function() {
+    $(".join").show();
+};
+ws.onclose = function () {
+    alert("连接至服务器失败,请稍后重试");
+}
+ws.onmessage = function(e) {
+   console.log(e.data)
 }

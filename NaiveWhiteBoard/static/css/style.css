@@ -11,15 +11,17 @@ html {
 }
 
 .join {
-    width: 60% !important;
-    height: 60% !important;
-    z-index: 20 !important;
+    width: 60%;
+    height: 60%;
+    z-index: 20;
+    border-radius: 9px;
     margin: 10% 20% 30% 20%;
+    display: none;
 }
 
 .title {
-    height: 80%;
-    background: url('/static/img/welcome.jpeg') center / cover;
+    height: 73%;
+    background: url("/static/img/welcome.jpeg") center / cover;
 }
 
 .mask {
