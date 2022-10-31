@@ -20,10 +20,11 @@ type whiteBoard struct {
 	pages []string // 白板所有页面的内容
 }
 
-// 信息结构
+// 信息
 type message struct {
-	action string
-	value  string
+	action  string // 操作名称
+	value   string
+	success bool // 指令是否成功
 }
 
 var users map[string]*user
@@ -41,7 +42,7 @@ func (u *user) receiveMessage() {
 		}
 	}()
 	for {
-		//读取ws中的数据
+		// 接收来自用户的一条信息
 		_, m, err := u.ws.ReadMessage()
 		if err != nil {
 			break
@@ -53,21 +54,25 @@ func (u *user) receiveMessage() {
 			fmt.Printf("unmarshal message fail! msg:[%v] err:[%v]", m, err)
 			break
 		}
+		var reply message
 		switch msg.action {
 		case "createWhiteBoard":
-		// 创建白板,value是白板名称
-
+			// 创建白板
+			reply = message{
+				action:  "createWhiteBoard",
+				success: addWhiteBoard(msg.value),
+			}
 		case "ping":
 			// Ping/Pong
 		}
-
-		//写入ws数据
-		//err = u.ws.WriteMessage(mt, message)
-		//if err != nil {
-		//	break
-		//}
+		// 回复用户
+		replyJSON, _ := json.Marshal(reply)
+		err = u.ws.WriteMessage(websocket.TextMessage, replyJSON)
+		if err != nil {
+			fmt.Printf("reply to user fail! reply:[%v] user[%v]", reply, u)
+			break
+		}
 	}
-
 }
 
 // 添加一个用户
