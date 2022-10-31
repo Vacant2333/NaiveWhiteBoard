@@ -1,4 +1,3 @@
-//var canvas = this.__canvas = new fabric.Canvas('board', {
 var canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -12,7 +11,8 @@ var img = document.createElement('img');
 img.src = deleteIcon;
 
 fabric.Object.prototype.transparentCorners = false;
-fabric.Object.prototype.cornerColor = 'green';
+fabric.Object.prototype.cornerColor = '#B2CCFF';
+fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
 
 function Add() {
@@ -26,7 +26,6 @@ function Add() {
         stroke: 'lightgreen',
         strokeWidth: 4,
     });
-
     canvas.add(rect);
     canvas.setActiveObject(rect);
 }
@@ -59,23 +58,39 @@ function renderIcon(ctx, left, top, styleOverride, fabricObject) {
     ctx.restore();
 }
 
-// 画布自适应
+// 分组/取消分组
+$("#group").click(function () {
+    if (!canvas.getActiveObject()) {
+        return;
+    }
+    if (canvas.getActiveObject().type !== 'activeSelection') {
+        return;
+    }
+    canvas.getActiveObject().toGroup();
+    canvas.requestRenderAll();
+})
+$("#ungroup").click(function () {
+    if (!canvas.getActiveObject()) {
+        return;
+    }
+    if (canvas.getActiveObject().type !== 'group') {
+        return;
+    }
+    canvas.getActiveObject().toActiveSelection();
+    canvas.requestRenderAll();
+})
+// 画布自适应窗口大小
 window.onresize = function () {
     canvas.setDimensions({
         width: window.innerWidth,
         height: window.innerHeight
     })
 }
-
 // 鼠标滚轮调整缩放
 canvas.on('mouse:wheel', function (opt){
-    const delta = opt.e.deltaY
-    let zoom = canvas.getZoom()
-    zoom *= 0.999 ** delta
-
+    let zoom = canvas.getZoom() * 0.999 ** opt.e.deltaY
     if (zoom > 5) zoom = 5
     if (zoom < 0.5) zoom = 0.5
-
     // 以鼠标所在位置为原点缩放
     canvas.zoomToPoint(
         {
@@ -87,12 +102,10 @@ canvas.on('mouse:wheel', function (opt){
     opt.e.preventDefault()
     opt.e.stopPropagation()
 })
-
 // 阻止右键菜单
 document.body.oncontextmenu = function(e){
     return false;
 };
-
 // 右键拖拽移动画布
 canvas.on('mouse:down:before', function(opt) {
     if(opt.e.button === 2) {
@@ -121,3 +134,6 @@ canvas.on('mouse:up:before', function() {
     this.selection = true;
     this.setCursor("default")
 });
+canvas.on('selection:created', function (opt) {
+    console.log(opt)
+})

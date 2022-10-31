@@ -9,18 +9,30 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,500,0,200" />
 </head>
 <body>
-<div class="controls" style="top: 200px">
-    <span class="material-symbols-outlined tool">edit</span>
-    <span class="material-symbols-outlined tool">text_fields</span>
-    <span class="material-symbols-outlined tool">shape_line</span>
-</div>
-<div class="controls" style="top: 350px;">
-    <span class="material-symbols-outlined tool">undo</span>
-    <span class="material-symbols-outlined tool">redo</span>
-    <span class="material-symbols-outlined tool">share</span>
-</div>
+    <div class="controls" style="top: 120px">
+        <span class="material-symbols-outlined tool">edit</span>
+        <span class="material-symbols-outlined tool">straight</span>
+        <span class="material-symbols-outlined tool">moving</span>
 
-<canvas id="board" class="board"></canvas>
+        <span class="material-symbols-outlined tool">circle</span>
+        <span class="material-symbols-outlined tool" onclick="Add()">rectangle</span>
+        <span class="material-symbols-outlined tool">change_history</span>
+
+        <span class="material-symbols-outlined tool">text_fields</span>
+    </div>
+    <div class="controls" style="top: 420px;">
+        <span class="material-symbols-outlined tool">undo</span>
+        <span class="material-symbols-outlined tool">redo</span>
+        <span class="material-symbols-outlined tool">share</span>
+    </div>
+
+    <div class="controls" style="top: 560px;">
+        <span class="material-symbols-outlined tool" id="group">group_work</span>
+        <span class="material-symbols-outlined tool" id="ungroup">atr</span>
+    </div>
+
+
+    <canvas id="board" class="board"></canvas>
 </body>
 <script src="/static/js/index.js"></script>
 </html>
