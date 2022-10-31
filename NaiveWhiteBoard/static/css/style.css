@@ -55,6 +55,10 @@ span.tool {
     height: 100%;
 }
 
+#toastBar {
+    z-index: 20;
+}
+
 /* google icon */
 @font-face {
     font-family: 'Material Symbols Outlined';

@@ -11,6 +11,8 @@ fabric.Object.prototype.transparentCorners = false;
 fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
+
+/* 左侧功能 */
 // 分组/取消分组
 $("#group").click(function () {
     if (!canvas.getActiveObject()) {
@@ -125,14 +127,56 @@ function addElement(type) {
     canvas.setActiveObject(ele);
 }
 
+/* WebSocket */
 // 初始化WebSocket
 let ws = new WebSocket("ws://" + window.location.host + "/connect")
 ws.onopen = function() {
     $(".join").show();
 };
 ws.onclose = function () {
-    alert("连接至服务器失败,请稍后重试");
+    tip("连接至服务器失败,请稍后重试");
 }
 ws.onmessage = function(e) {
-   console.log(e.data)
+    console.log(e.data)
+    let reply = JSON.parse(e.data)
+    switch (reply["Action"]) {
+        case "createWhiteBoard":
+            if(reply["Success"]) {
+                // 创建成功,进入主界面
+                $(".join").hide();
+                $(".mask").hide();
+            } else {
+                tip("白板已存在,您可加入该白板")
+            }
+            break;
+    }
+}
+// 创建白板
+function createWhiteBoard() {
+    let name = $("#boardName").val();
+    if(name.length > 0) {
+        ws.send(JSON.stringify({
+            "Action": "createWhiteBoard",
+            "Value": name
+        }));
+    } else {
+        tip("请输入白板名称")
+    }
+}
+// 加入白板
+function joinWhiteBoard() {
+    let name = $("#boardName").val();
+    if(name.length > 0) {
+        ws.send(JSON.stringify({
+            "Action": "joinWhiteBoard",
+            "Value": name
+        }));
+    } else {
+        tip("请输入白板名称")
+    }
+}
+
+/* 公用方法 */
+function tip(s) {
+    document.querySelector("#toastBar").MaterialSnackbar.showSnackbar({message: s});
 }

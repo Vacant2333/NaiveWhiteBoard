@@ -1,6 +1,7 @@
 package main
 
 import (
+	"NaiveWhiteBoard/websocket"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -15,7 +16,6 @@ func main() {
 	// 静态文件
 	router.Static("/static", "static")
 	// 后端WebSocket(客户端通过该ws传输数据)
-	router.GET("/connect", connect)
-
+	router.GET("/connect", websocket.Connect)
 	router.Run(":8081")
 }

@@ -1,4 +1,4 @@
-package main
+package board
 
 import (
 	"encoding/json"
@@ -16,19 +16,25 @@ type user struct {
 
 // 白板
 type whiteBoard struct {
-	name  string   // 白板名称
-	pages []string // 白板所有页面的内容
+	name    string   // 白板名称
+	founder string   // 创始人的用户名
+	pages   []string // 白板所有页面的内容
 }
 
-// 信息
-type message struct {
-	action  string // 操作名称
-	value   string
-	success bool // 指令是否成功
+// Message 信息
+type Message struct {
+	Action  string // 操作名称
+	Value   string
+	Success bool // 指令是否成功
 }
 
 var users map[string]*user
 var boards map[string]*whiteBoard
+
+func init() {
+	users = make(map[string]*user)
+	boards = make(map[string]*whiteBoard)
+}
 
 // 持续接受来自用户的信息
 func (u *user) receiveMessage() {
@@ -48,20 +54,23 @@ func (u *user) receiveMessage() {
 			break
 		}
 		// 解析msg
-		var msg message
+		var msg Message
 		err = json.Unmarshal(m, &msg)
 		if err != nil {
 			fmt.Printf("unmarshal message fail! msg:[%v] err:[%v]", m, err)
 			break
 		}
-		var reply message
-		switch msg.action {
+		var reply Message
+		switch msg.Action {
 		case "createWhiteBoard":
 			// 创建白板
-			reply = message{
-				action:  "createWhiteBoard",
-				success: addWhiteBoard(msg.value),
+			reply = Message{
+				Action:  "createWhiteBoard",
+				Success: addWhiteBoard(msg.Value, u.name),
 			}
+		case "joinWhiteBoard":
+			// 加入白板
+
 		case "ping":
 			// Ping/Pong
 		}
@@ -75,8 +84,8 @@ func (u *user) receiveMessage() {
 	}
 }
 
-// 添加一个用户
-func addUser(name string, ws *websocket.Conn) {
+// AddUser 添加一个用户
+func AddUser(name string, ws *websocket.Conn) {
 	users[name] = &user{
 		name: name,
 		ws:   ws,
@@ -86,14 +95,19 @@ func addUser(name string, ws *websocket.Conn) {
 }
 
 // 创建一个白板,如果已存在返回false
-func addWhiteBoard(name string) bool {
+func addWhiteBoard(name string, founder string) bool {
 	if _, ok := boards[name]; ok {
 		// 白板已存在
 		return false
 	}
+	// 创建白板
 	boards[name] = &whiteBoard{
-		name:  name,
-		pages: make([]string, 0),
+		name:    name,
+		founder: founder,
+		pages:   make([]string, 0),
 	}
+	// 设置用户所属白板
+	users[name].boardName = name
+	users[name].boardIndex = 0
 	return true
 }
