@@ -116,8 +116,8 @@ function addElement(type) {
        "stroke": "black",
         "width": 200,
         "height": 200,
-        "left": 300,
-        "top": 300,
+        "left": window.innerWidth/2-100,
+        "top": window.innerHeight/2-100,
         "fill": "",
         "strokeWidth": 2
     });

@@ -6,30 +6,52 @@
     <script src="/static/js/fabric.js"></script>
     <script src="/static/js/jquery-3.6.1.min.js"></script>
     <link href="/static/css/style.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 </head>
 <body>
-    <!--- 左侧控制栏 --->
-    <div class="controls" style="top: 120px">
+    <!-- 工具栏 -->
+    <div class="controls mdl-shadow--2dp" style="top: 120px">
         <span class="material-symbols-outlined tool">edit</span>
         <span class="material-symbols-outlined tool">straight</span>
         <span class="material-symbols-outlined tool">moving</span>
-
         <span class="material-symbols-outlined tool" onclick="addElement('Circle')">circle</span>
         <span class="material-symbols-outlined tool" onclick="addElement('Rect')">rectangle</span>
         <span class="material-symbols-outlined tool" onclick="addElement('Triangle')">change_history</span>
-
         <span class="material-symbols-outlined tool" onclick="addElement('IText')">text_fields</span>
     </div>
-    <div class="controls" style="top: 420px;">
+    <div class="controls mdl-shadow--2dp" style="top: 420px;">
         <span class="material-symbols-outlined tool">undo</span>
         <span class="material-symbols-outlined tool">redo</span>
         <span class="material-symbols-outlined tool">share</span>
     </div>
-    <div class="controls" style="top: 560px;">
+    <div class="controls mdl-shadow--2dp" style="top: 560px;">
         <span class="material-symbols-outlined tool" id="group">group_work</span>
         <span class="material-symbols-outlined tool" id="ungroup">atr</span>
     </div>
-    <!--- 画布 --->
+    <!-- 新建/加入白板 -->
+    <div class="join mdl-card mdl-shadow--2dp">
+        <div class="title"></div>
+        <div class="mdl-card__supporting-text">
+            输入白板名称来创建一个新白板或加入朋友分享的白板吧!
+        </div>
+        <div class="mdl-card__actions mdl-card--border">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <input class="mdl-textfield__input" type="text" id="sample3">
+                <label class="mdl-textfield__label" for="sample3">白板名称</label>
+            </div>
+            <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                创建
+            </a>
+            <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                加入
+            </a>
+        </div>
+    </div>
+    <!-- 遮罩层 -->
+    <div class="mask"></div>
+    <!-- 画布 -->
     <canvas id="board" class="board"></canvas>
 </body>
 <script src="/static/js/index.js"></script>
