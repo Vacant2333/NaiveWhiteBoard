@@ -6,9 +6,9 @@
     <script src="/static/js/fabric.js"></script>
     <script src="/static/js/jquery-3.6.1.min.js"></script>
     <link href="/static/css/style.css" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,500,0,200" />
 </head>
 <body>
+    <!--- 左侧控制栏 --->
     <div class="controls" style="top: 120px">
         <span class="material-symbols-outlined tool">edit</span>
         <span class="material-symbols-outlined tool">straight</span>
@@ -25,13 +25,11 @@
         <span class="material-symbols-outlined tool">redo</span>
         <span class="material-symbols-outlined tool">share</span>
     </div>
-
     <div class="controls" style="top: 560px;">
         <span class="material-symbols-outlined tool" id="group">group_work</span>
         <span class="material-symbols-outlined tool" id="ungroup">atr</span>
     </div>
-
-
+    <!--- 画布 --->
     <canvas id="board" class="board"></canvas>
 </body>
 <script src="/static/js/index.js"></script>
