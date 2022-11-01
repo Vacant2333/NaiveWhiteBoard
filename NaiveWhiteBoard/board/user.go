@@ -37,18 +37,13 @@ func AddUser(name string, ws *websocket.Conn) {
 // 持续接受来自用户的信息
 func (user *User) receiveMessage() {
 	defer func() {
-		// 关闭WebSocket
-		err := user.WebSocket.Close()
-		// 删除该用户
-		delete(Users, user.Name)
-		if err != nil {
-			fmt.Printf("close websocket fail! %v\n", err)
-		}
+		fmt.Println(recover())
 	}()
 	for {
 		// 接收来自用户的一条信息
 		_, m, err := user.WebSocket.ReadMessage()
 		if err != nil {
+			// 这里会捕捉到WebSocket断开
 			break
 		}
 		// 解析msg
@@ -70,6 +65,7 @@ func (user *User) receiveMessage() {
 					Name:    boardName,
 					Creator: user.Name,
 					Pages:   make([]Page, 1),
+					Users:   map[string]bool{},
 				}
 				// 初始化默认页面(第一页)
 				Boards[boardName].Pages[0] = make(map[int]Element)
@@ -86,18 +82,26 @@ func (user *User) receiveMessage() {
 			reply = &Message{
 				Action:  "joinWhiteBoard",
 				Success: user.joinWhiteBoard(boardName),
-				Value:   user.getPageElements(), // 要先join再get :(
+				Value:   user.getPageElements(),
 			}
-		case "addElement":
-			// 添加元素
+		case "modifyElement":
+			// 添加/修改元素
 			element := Element(msg.Value.(map[string]interface{}))
-			// 在用户对应的白板和页面中添加该元素
-			Boards[user.Board].addElement(element, user.Page)
+			// 在用户对应的白板和页面中操作该元素
+			Boards[user.Board].modifyElement(element, user.Page, user.Name)
 		}
+
 		if reply != nil {
 			// 回复用户
 			user.sendMessage(reply)
 		}
+	}
+	// 删除该用户
+	user.delete()
+	// 关闭WebSocket
+	err := user.WebSocket.Close()
+	if err != nil {
+		fmt.Printf("close websocket fail! %v\n", err)
 	}
 }
 
@@ -117,7 +121,7 @@ func (user *User) joinWhiteBoard(boardName string) bool {
 		return false
 	}
 	// 把该用户存入到白板中
-	Boards[boardName].Users = append(Boards[boardName].Users, user.Name)
+	Boards[boardName].Users[user.Name] = true
 	// 设置用户所属白板
 	user.Board = boardName
 	return true
@@ -125,5 +129,21 @@ func (user *User) joinWhiteBoard(boardName string) bool {
 
 // 获得用户所在Page的所有元素
 func (user *User) getPageElements() Page {
-	return Boards[user.Board].Pages[user.Page]
+	if user.Board != "" {
+		return Boards[user.Board].Pages[user.Page]
+	}
+	return nil
+}
+
+// 删除用户
+func (user *User) delete() {
+	if _, hasUser := Users[user.Name]; hasUser {
+		delete(Users, user.Name)
+		if user.Board != "" {
+			// 用户可能还没加入某个白板就断开连接
+			if _, boardHasUser := Boards[user.Board].Users[user.Name]; boardHasUser {
+				delete(Boards[user.Board].Users, user.Name)
+			}
+		}
+	}
 }

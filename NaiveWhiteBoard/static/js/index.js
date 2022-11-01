@@ -61,7 +61,7 @@ canvas.on('mouse:wheel', function (opt){
     opt.e.stopPropagation();
 })
 // 阻止右键菜单
-document.body.oncontextmenu = function(e){
+document.body.oncontextmenu = function(){
     return false;
 };
 // 右键拖拽移动画布
@@ -133,11 +133,19 @@ function addElement(type) {
     });
     // 元素的固定ID
     ele.id = Math.floor(Math.random()*10000000)
+    // 更改事件
+    ele.on("modified", function () {
+        // 通知服务端修改元素
+        ws.send(JSON.stringify({
+            "Action": "modifyElement",
+            "Value": ele,
+        }));
+    })
     // 存入本地
     elements[ele.id] = ele
-    // 通知服务端添加一个元素
+    // 通知服务端添加元素
     ws.send(JSON.stringify({
-        "Action": "addElement",
+        "Action": "modifyElement",
         "Value": ele,
     }));
     canvas.add(ele);
@@ -156,8 +164,20 @@ function resetCanvas(data) {
 function drawElement(element) {
     let temp = fabric.util.getKlass(element["type"]);
     temp.fromObject(element, function (obj) {
+        if(elements[element.id] !== null) {
+            // 如果这个元素已存在,要删除之前那个
+            canvas.remove(elements[element.id])
+        }
+        // 更改事件
+        obj.on("modified", function (e) {
+            // 通知服务端修改元素
+            ws.send(JSON.stringify({
+                "Action": "modifyElement",
+                "Value": e.target,
+            }));
+        })
+        elements[element.id] = obj
         canvas.add(obj);
-        elements[element.id] = element
     });
 }
 /* WebSocket */
@@ -196,9 +216,10 @@ ws.onmessage = function(e) {
                 tip("白板不存在,您可创建该白板");
             }
             break;
-        case "updateElement":
-            // 服务端要求用户更新某个元素
+        case "modifyElement":
+            // 服务端要求用户更新/添加某个元素
             drawElement(reply["Value"]);
+            console.log(reply["Value"])
             break;
     }
 }
