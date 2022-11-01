@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"runtime/debug"
 )
 
 // Users 所有连接到服务器的用户
@@ -37,7 +38,10 @@ func AddUser(name string, ws *websocket.Conn) {
 // 持续接受来自用户的信息
 func (user *User) receiveMessage() {
 	defer func() {
-		fmt.Println(recover())
+		if err := recover(); err != nil {
+			recover()
+			debug.PrintStack()
+		}
 	}()
 	for {
 		// 接收来自用户的一条信息
@@ -90,7 +94,6 @@ func (user *User) receiveMessage() {
 			// 在用户对应的白板和页面中操作该元素
 			Boards[user.Board].modifyElement(element, user.Page, user.Name)
 		}
-
 		if reply != nil {
 			// 回复用户
 			user.sendMessage(reply)
@@ -139,11 +142,9 @@ func (user *User) getPageElements() Page {
 func (user *User) delete() {
 	if _, hasUser := Users[user.Name]; hasUser {
 		delete(Users, user.Name)
+		// 用户可能还没加入某个白板就断开连接
 		if user.Board != "" {
-			// 用户可能还没加入某个白板就断开连接
-			if _, boardHasUser := Boards[user.Board].Users[user.Name]; boardHasUser {
-				delete(Boards[user.Board].Users, user.Name)
-			}
+			delete(Boards[user.Board].Users, user.Name)
 		}
 	}
 }

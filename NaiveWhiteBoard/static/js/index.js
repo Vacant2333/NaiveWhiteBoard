@@ -130,16 +130,21 @@ function addElement(type) {
         "top": window.innerHeight/2-100,
         "fill": "",
         "strokeWidth": 2,
+        // 不固定到中心会导致Circle的位置对不上
+        "originX": "center",
+        "originY": "center",
     });
     // 元素的固定ID
     ele.id = Math.floor(Math.random()*10000000)
     // 更改事件
+    console.log(ele)
     ele.on("modified", function () {
         // 通知服务端修改元素
         ws.send(JSON.stringify({
             "Action": "modifyElement",
             "Value": ele,
         }));
+        console.log(ele)
     })
     // 存入本地
     elements[ele.id] = ele
@@ -160,7 +165,7 @@ function resetCanvas(data) {
         drawElement(element)
     });
 }
-// 根据服务器传来的数据来添加元素
+// 根据服务器传来的数据来添加/修改元素
 function drawElement(element) {
     let temp = fabric.util.getKlass(element["type"]);
     temp.fromObject(element, function (obj) {
@@ -169,11 +174,11 @@ function drawElement(element) {
             canvas.remove(elements[element.id])
         }
         // 更改事件
-        obj.on("modified", function (e) {
+        obj.on("modified", function () {
             // 通知服务端修改元素
             ws.send(JSON.stringify({
                 "Action": "modifyElement",
-                "Value": e.target,
+                "Value": obj,
             }));
         })
         elements[element.id] = obj
