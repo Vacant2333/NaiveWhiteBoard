@@ -116,12 +116,10 @@ func (user *User) joinWhiteBoard(boardName string) bool {
 	Boards[boardName].Users = append(Boards[boardName].Users, user.Name)
 	// 设置用户所属白板
 	user.Board = boardName
-	fmt.Println(Users[user.Name])
 	return true
 }
 
-// 获得所在Page的所有元素
+// 获得用户所在Page的所有元素
 func (user *User) getPageElements() Page {
-	fmt.Println(Boards, user)
 	return Boards[user.Board].Pages[user.Page]
 }

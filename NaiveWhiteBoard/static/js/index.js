@@ -133,13 +133,32 @@ function addElement(type) {
     });
     // 元素的固定ID
     ele.id = Math.floor(Math.random()*10000000)
-    canvas.add(ele);
-    canvas.setActiveObject(ele);
+    // 存入本地
+    elements[ele.id] = ele
     // 通知服务端添加一个元素
     ws.send(JSON.stringify({
         "Action": "addElement",
         "Value": ele,
     }));
+    canvas.add(ele);
+    canvas.setActiveObject(ele);
+}
+// 重绘画布(加入时同步画布)
+function resetCanvas(data) {
+    canvas.clear();
+    elements = Object.values(data);
+    // 遍历所有从服务器传来的Element,通过这些Element生成对象
+    elements.forEach(function (element) {
+        drawElement(element)
+    });
+}
+// 根据服务器传来的数据来添加元素
+function drawElement(element) {
+    let temp = fabric.util.getKlass(element["type"]);
+    temp.fromObject(element, function (obj) {
+        canvas.add(obj);
+        elements[element.id] = element
+    });
 }
 
 /* WebSocket */
@@ -169,7 +188,8 @@ ws.onmessage = function(e) {
                 // 加入成功,进入主界面
                 $(".join").hide();
                 $(".mask").hide();
-                console.log(reply["Value"])
+                // 加入时同步画布数据
+                resetCanvas(reply["Value"])
                 tip("加入白板成功!");
             } else {
                 tip("白板不存在,您可创建该白板");
