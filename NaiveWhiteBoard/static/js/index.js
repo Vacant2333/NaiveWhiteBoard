@@ -3,7 +3,7 @@ const minZoom = 0.5;
 const maxZoom = 5;
 
 // 画布中所有的元素
-let elements;
+let elements = {};
 
 // 初始化画布
 var canvas = new fabric.Canvas('board', {
@@ -160,7 +160,6 @@ function drawElement(element) {
         elements[element.id] = element
     });
 }
-
 /* WebSocket */
 // 初始化WebSocket
 let ws = new WebSocket("ws://" + window.location.host + "/connect")
@@ -174,6 +173,7 @@ ws.onmessage = function(e) {
     let reply = JSON.parse(e.data)
     switch (reply["Action"]) {
         case "createWhiteBoard":
+            // 创建白板的回复
             if(reply["Success"]) {
                 // 创建成功,进入主界面
                 $(".join").hide();
@@ -184,6 +184,7 @@ ws.onmessage = function(e) {
             }
             break;
         case "joinWhiteBoard":
+            // 加入白板的回复
             if(reply["Success"]) {
                 // 加入成功,进入主界面
                 $(".join").hide();
@@ -194,6 +195,10 @@ ws.onmessage = function(e) {
             } else {
                 tip("白板不存在,您可创建该白板");
             }
+            break;
+        case "updateElement":
+            // 服务端要求用户更新某个元素
+            drawElement(reply["Value"]);
             break;
     }
 }
@@ -221,8 +226,6 @@ function joinWhiteBoard() {
         tip("请输入白板名称");
     }
 }
-
-
 
 /* 公用方法 */
 function tip(s) {

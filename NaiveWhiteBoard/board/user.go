@@ -96,13 +96,17 @@ func (user *User) receiveMessage() {
 		}
 		if reply != nil {
 			// 回复用户
-			replyJSON, _ := json.Marshal(reply)
-			err = user.WebSocket.WriteMessage(websocket.TextMessage, replyJSON)
-			if err != nil {
-				fmt.Printf("reply to User fail! reply:[%v] User[%v]", reply, user)
-				break
-			}
+			user.sendMessage(reply)
 		}
+	}
+}
+
+// 发送一条消息给用户
+func (user *User) sendMessage(msg *Message) {
+	content, _ := json.Marshal(msg)
+	err := user.WebSocket.WriteMessage(websocket.TextMessage, content)
+	if err != nil {
+		fmt.Printf("reply to User fail! reply:[%v] User[%v]", msg, user)
 	}
 }
 

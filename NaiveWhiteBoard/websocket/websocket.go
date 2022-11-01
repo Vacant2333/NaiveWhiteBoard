@@ -22,6 +22,10 @@ func Connect(c *gin.Context) {
 		fmt.Printf("connect to %v fail! %v\n", c.RemoteIP(), err)
 		return
 	}
+	ws.SetCloseHandler(func(code int, text string) error {
+		// todo:close 处理
+		return nil
+	})
 	// 连接成功,保存这个用户后持续接受来自用户的消息
 	board.AddUser(ws.RemoteAddr().String(), ws)
 }
