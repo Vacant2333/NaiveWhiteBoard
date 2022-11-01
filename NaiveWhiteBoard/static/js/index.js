@@ -135,6 +135,7 @@ function addElement(type) {
     ele.id = Math.floor(Math.random()*10000000)
     canvas.add(ele);
     canvas.setActiveObject(ele);
+    // 通知服务端添加一个元素
     ws.send(JSON.stringify({
         "Action": "addElement",
         "Value": ele,

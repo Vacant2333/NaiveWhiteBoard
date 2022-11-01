@@ -6,15 +6,15 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// 所有连接到服务器的用户
-var users map[string]*user
+// Users 所有连接到服务器的用户
+var Users map[string]*User
 
-// 通过WebSocket连接到服务器的用户
-type user struct {
-	name       string          // 用户名(addr)
-	ws         *websocket.Conn // WebSocket连接
-	boardName  string          // 用户所属的白板名称
-	boardIndex int             // 用户所在的白板页面
+// User 通过WebSocket连接到服务器的用户
+type User struct {
+	Name      string          // 用户名(addr)
+	WebSocket *websocket.Conn // WebSocket连接
+	Board     string          // 用户所属的白板名称
+	Page      int             // 用户所在的白板下标
 }
 
 // Message WebSocket信息格式
@@ -26,28 +26,28 @@ type Message struct {
 
 // AddUser 添加一个用户
 func AddUser(name string, ws *websocket.Conn) {
-	users[name] = &user{
-		name: name,
-		ws:   ws,
+	Users[name] = &User{
+		Name:      name,
+		WebSocket: ws,
 	}
 	// 持续读取从用户发来的信息
-	go users[name].receiveMessage()
+	go Users[name].receiveMessage()
 }
 
 // 持续接受来自用户的信息
-func (u *user) receiveMessage() {
+func (user *User) receiveMessage() {
 	defer func() {
 		// 关闭WebSocket
-		closeErr := u.ws.Close()
+		err := user.WebSocket.Close()
 		// 删除该用户
-		delete(users, u.name)
-		if closeErr != nil {
-			fmt.Printf("close websocket fail! %v\n", closeErr)
+		delete(Users, user.Name)
+		if err != nil {
+			fmt.Printf("close websocket fail! %v\n", err)
 		}
 	}()
 	for {
 		// 接收来自用户的一条信息
-		_, m, err := u.ws.ReadMessage()
+		_, m, err := user.WebSocket.ReadMessage()
 		if err != nil {
 			break
 		}
@@ -62,64 +62,61 @@ func (u *user) receiveMessage() {
 		switch msg.Action {
 		case "createWhiteBoard":
 			// 创建白板
-			borderName := msg.Value.(string)
+			var success bool
+			boardName := msg.Value.(string)
+			if _, success = Boards[boardName]; !success {
+				// 白板不存在,创建白板
+				Boards[boardName] = &WhiteBoard{
+					Name:    boardName,
+					Creator: user.Name,
+					Pages:   make([]map[int]Element, 1),
+				}
+				// 初始化默认页面(第一页)
+				Boards[boardName].Pages[0] = make(map[int]Element)
+				user.joinWhiteBoard(boardName)
+			}
 			reply = Message{
 				Action:  "createWhiteBoard",
-				Success: createWhiteBoard(borderName, u.name),
+				Success: success,
 			}
 		case "joinWhiteBoard":
 			// 加入白板
-			borderName := msg.Value.(string)
+			boardName := msg.Value.(string)
+			success := user.joinWhiteBoard(boardName)
 			reply = Message{
 				Action:  "joinWhiteBoard",
-				Success: joinWhiteBoard(borderName, u.name),
+				Success: success,
 			}
 		case "ping":
 			// Ping/Pong
 		case "addElement":
 			// 添加元素
 			element := Element(msg.Value.(map[string]interface{}))
-			fmt.Println(element)
-
+			// 在用户对应的白板,页面中添加该元素
+			elementId := element["id"].(int)
+			Boards[user.Board].Pages[user.Page][elementId] = element
 		}
 		if &reply != nil {
 			// 回复用户
 			replyJSON, _ := json.Marshal(reply)
-			err = u.ws.WriteMessage(websocket.TextMessage, replyJSON)
+			err = user.WebSocket.WriteMessage(websocket.TextMessage, replyJSON)
 			if err != nil {
-				fmt.Printf("reply to user fail! reply:[%v] user[%v]", reply, u)
+				fmt.Printf("reply to User fail! reply:[%v] User[%v]", reply, user)
 				break
 			}
 		}
 	}
 }
 
-// 创建白板,如果已存在返回false
-func createWhiteBoard(borderName string, userName string) bool {
-	if _, ok := boards[borderName]; ok {
-		// 白板已存在
-		return false
-	}
-	// 创建白板
-	boards[borderName] = &whiteBoard{
-		name:    borderName,
-		founder: userName,
-		pages:   make([]map[int]*Element, 1),
-	}
-	// 初始化默认页面(第一页)
-	boards[borderName].pages[0] = make(map[int]*Element)
-	// 设置用户所属白板
-	users[userName].boardName = borderName
-	return true
-}
-
 // 加入白板,如果白板不存在返回false
-func joinWhiteBoard(boardName string, userName string) bool {
-	if _, ok := boards[boardName]; !ok {
+func (user *User) joinWhiteBoard(boardName string) bool {
+	if _, ok := Boards[boardName]; !ok {
 		// 白板不存在
 		return false
 	}
+	// 把该用户存入到白板中
+	Boards[boardName].Users = append(Boards[boardName].Users, Users[user.Name])
 	// 设置用户所属白板
-	users[userName].boardName = userName
+	Users[user.Name].Board = boardName
 	return true
 }
