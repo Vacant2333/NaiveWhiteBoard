@@ -39,6 +39,7 @@ func AddUser(name string, ws *websocket.Conn) {
 func (user *User) receiveMessage() {
 	defer func() {
 		if err := recover(); err != nil {
+			// 错误恢复,打印调用栈
 			recover()
 			debug.PrintStack()
 		}
@@ -86,7 +87,8 @@ func (user *User) receiveMessage() {
 			reply = &Message{
 				Action:  "joinWhiteBoard",
 				Success: user.joinWhiteBoard(boardName),
-				Value:   user.getPageElements(),
+				// 要先join才能get到 :(
+				Value: user.getPageElements(),
 			}
 		case "modifyElement":
 			// 添加/修改元素

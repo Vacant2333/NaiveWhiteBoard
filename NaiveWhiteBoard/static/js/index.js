@@ -137,14 +137,12 @@ function addElement(type) {
     // 元素的固定ID
     ele.id = Math.floor(Math.random()*10000000)
     // 更改事件
-    console.log(ele)
     ele.on("modified", function () {
         // 通知服务端修改元素
         ws.send(JSON.stringify({
             "Action": "modifyElement",
             "Value": ele,
         }));
-        console.log(ele)
     })
     // 存入本地
     elements[ele.id] = ele
@@ -224,7 +222,6 @@ ws.onmessage = function(e) {
         case "modifyElement":
             // 服务端要求用户更新/添加某个元素
             drawElement(reply["Value"]);
-            console.log(reply["Value"])
             break;
     }
 }

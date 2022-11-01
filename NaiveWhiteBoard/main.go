@@ -17,5 +17,5 @@ func main() {
 	})
 	// 后端WebSocket(客户端通过该接口传输数据)
 	router.GET("/connect", websocket.Connect)
-	router.Run(":8081")
+	router.Run(":8000")
 }
