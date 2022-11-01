@@ -1,6 +1,10 @@
 // 缩放限制
 const minZoom = 0.5;
 const maxZoom = 5;
+
+// 画布中所有的元素
+let elements;
+
 // 初始化画布
 var canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
@@ -119,7 +123,7 @@ function addElement(type) {
             break;
     }
     ele.set({
-       "stroke": "black",
+        "stroke": "black",
         "width": 200,
         "height": 200,
         "left": window.innerWidth/2-100,
@@ -127,8 +131,14 @@ function addElement(type) {
         "fill": "",
         "strokeWidth": 2,
     });
+    // 元素的固定ID
+    ele.id = Math.floor(Math.random()*10000000)
     canvas.add(ele);
     canvas.setActiveObject(ele);
+    ws.send(JSON.stringify({
+        "Action": "addElement",
+        "Value": ele,
+    }));
 }
 
 /* WebSocket */
@@ -189,10 +199,8 @@ function joinWhiteBoard() {
         tip("请输入白板名称");
     }
 }
-// 添加元素
-function wsAddElement() {
-    
-}
+
+
 
 /* 公用方法 */
 function tip(s) {

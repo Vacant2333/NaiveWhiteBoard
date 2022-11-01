@@ -20,7 +20,7 @@ type user struct {
 // Message WebSocket信息格式
 type Message struct {
 	Action  string // 操作名称
-	Value   string
+	Value   interface{}
 	Success bool // 指令是否成功
 }
 
@@ -55,38 +55,47 @@ func (u *user) receiveMessage() {
 		var msg Message
 		err = json.Unmarshal(m, &msg)
 		if err != nil {
-			fmt.Printf("unmarshal message fail! msg:[%v] err:[%v]", m, err)
+			fmt.Printf("unmarshal message fail! err:[%v]", err)
 			break
 		}
 		var reply Message
 		switch msg.Action {
 		case "createWhiteBoard":
 			// 创建白板
+			borderName := msg.Value.(string)
 			reply = Message{
 				Action:  "createWhiteBoard",
-				Success: addWhiteBoard(msg.Value, u.name),
+				Success: createWhiteBoard(borderName, u.name),
 			}
 		case "joinWhiteBoard":
 			// 加入白板
+			borderName := msg.Value.(string)
 			reply = Message{
 				Action:  "joinWhiteBoard",
-				Success: joinWhiteBoard(msg.Value, u.name),
+				Success: joinWhiteBoard(borderName, u.name),
 			}
 		case "ping":
 			// Ping/Pong
+		case "addElement":
+			// 添加元素
+			element := Element(msg.Value.(map[string]interface{}))
+			fmt.Println(element)
+
 		}
-		// 回复用户
-		replyJSON, _ := json.Marshal(reply)
-		err = u.ws.WriteMessage(websocket.TextMessage, replyJSON)
-		if err != nil {
-			fmt.Printf("reply to user fail! reply:[%v] user[%v]", reply, u)
-			break
+		if &reply != nil {
+			// 回复用户
+			replyJSON, _ := json.Marshal(reply)
+			err = u.ws.WriteMessage(websocket.TextMessage, replyJSON)
+			if err != nil {
+				fmt.Printf("reply to user fail! reply:[%v] user[%v]", reply, u)
+				break
+			}
 		}
 	}
 }
 
 // 创建白板,如果已存在返回false
-func addWhiteBoard(borderName string, userName string) bool {
+func createWhiteBoard(borderName string, userName string) bool {
 	if _, ok := boards[borderName]; ok {
 		// 白板已存在
 		return false
@@ -95,12 +104,10 @@ func addWhiteBoard(borderName string, userName string) bool {
 	boards[borderName] = &whiteBoard{
 		name:    borderName,
 		founder: userName,
-		pages:   make([]*page, 1),
+		pages:   make([]map[int]*Element, 1),
 	}
-	// 默认页面(第一页)
-	boards[borderName].pages[0] = &page{
-		elements: make(map[int]*element),
-	}
+	// 初始化默认页面(第一页)
+	boards[borderName].pages[0] = make(map[int]*Element)
 	// 设置用户所属白板
 	users[userName].boardName = borderName
 	return true

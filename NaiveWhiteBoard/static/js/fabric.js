@@ -15312,6 +15312,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
             globalCompositeOperation: this.globalCompositeOperation,
             skewX:                    toFixed(this.skewX, NUM_FRACTION_DIGITS),
             skewY:                    toFixed(this.skewY, NUM_FRACTION_DIGITS),
+            id:                       this.id,
           };
 
       if (this.clipPath && !this.clipPath.excludeFromExport) {
