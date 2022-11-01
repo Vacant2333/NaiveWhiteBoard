@@ -58,45 +58,43 @@ func (user *User) receiveMessage() {
 			fmt.Printf("unmarshal message fail! err:[%v]", err)
 			break
 		}
-		var reply Message
+		var reply *Message
 		switch msg.Action {
 		case "createWhiteBoard":
 			// 创建白板
-			var success bool
 			boardName := msg.Value.(string)
-			if _, success = Boards[boardName]; !success {
+			success := false
+			if _, ok := Boards[boardName]; !ok {
 				// 白板不存在,创建白板
 				Boards[boardName] = &WhiteBoard{
 					Name:    boardName,
 					Creator: user.Name,
-					Pages:   make([]map[int]Element, 1),
+					Pages:   make([]Page, 1),
 				}
 				// 初始化默认页面(第一页)
 				Boards[boardName].Pages[0] = make(map[int]Element)
 				user.joinWhiteBoard(boardName)
+				success = true
 			}
-			reply = Message{
+			reply = &Message{
 				Action:  "createWhiteBoard",
 				Success: success,
 			}
 		case "joinWhiteBoard":
 			// 加入白板
 			boardName := msg.Value.(string)
-			success := user.joinWhiteBoard(boardName)
-			reply = Message{
+			reply = &Message{
 				Action:  "joinWhiteBoard",
-				Success: success,
+				Success: user.joinWhiteBoard(boardName),
+				Value:   user.getPageElements(), // 要先join再get :(
 			}
-		case "ping":
-			// Ping/Pong
 		case "addElement":
 			// 添加元素
 			element := Element(msg.Value.(map[string]interface{}))
-			// 在用户对应的白板,页面中添加该元素
-			elementId := element["id"].(int)
-			Boards[user.Board].Pages[user.Page][elementId] = element
+			// 在用户对应的白板和页面中添加该元素
+			Boards[user.Board].addElement(element, user.Page)
 		}
-		if &reply != nil {
+		if reply != nil {
 			// 回复用户
 			replyJSON, _ := json.Marshal(reply)
 			err = user.WebSocket.WriteMessage(websocket.TextMessage, replyJSON)
@@ -115,8 +113,15 @@ func (user *User) joinWhiteBoard(boardName string) bool {
 		return false
 	}
 	// 把该用户存入到白板中
-	Boards[boardName].Users = append(Boards[boardName].Users, Users[user.Name])
+	Boards[boardName].Users = append(Boards[boardName].Users, user.Name)
 	// 设置用户所属白板
-	Users[user.Name].Board = boardName
+	user.Board = boardName
+	fmt.Println(Users[user.Name])
 	return true
+}
+
+// 获得所在Page的所有元素
+func (user *User) getPageElements() Page {
+	fmt.Println(Boards, user)
+	return Boards[user.Board].Pages[user.Page]
 }

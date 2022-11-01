@@ -169,7 +169,8 @@ ws.onmessage = function(e) {
                 // 加入成功,进入主界面
                 $(".join").hide();
                 $(".mask").hide();
-                tip("白板加入成功!");
+                console.log(reply["Value"])
+                tip("加入白板成功!");
             } else {
                 tip("白板不存在,您可创建该白板");
             }
