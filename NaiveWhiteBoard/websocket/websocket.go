@@ -8,6 +8,7 @@ import (
 	"net/http"
 )
 
+// 升级器? 用来给GET请求升级为WebSocket
 var upGrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true

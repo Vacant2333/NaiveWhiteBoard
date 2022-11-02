@@ -1,10 +1,8 @@
 // 缩放限制
 const minZoom = 0.5;
 const maxZoom = 5;
-
 // 画布中所有的元素
 let elements = {};
-
 // 初始化画布
 var canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
@@ -15,6 +13,8 @@ fabric.Object.prototype.transparentCorners = false;
 fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
+// 初始化boardName输入框的内容
+setBoardNameValue();
 
 /* 左侧功能 */
 // 分组/取消分组
@@ -201,6 +201,8 @@ ws.onmessage = function(e) {
                 // 创建成功,进入主界面
                 $(".join").hide();
                 $(".mask").hide();
+                // Value为白板名称,修改当前URL用于分享
+                setUrl(reply["Value"])
                 tip("白板创建成功!");
             } else {
                 tip("白板已存在,您可加入该白板");
@@ -212,12 +214,16 @@ ws.onmessage = function(e) {
                 // 加入成功,进入主界面
                 $(".join").hide();
                 $(".mask").hide();
-                // 加入时同步画布数据
-                resetCanvas(reply["Value"])
+                // Value为白板名称,修改当前URL用于分享
+                setUrl(reply["Value"])
                 tip("加入白板成功!");
             } else {
                 tip("白板不存在,您可创建该白板");
             }
+            break;
+        case "modifyPage":
+            // 服务端要求要求用户更新页面所有数据
+            resetCanvas(reply["Value"])
             break;
         case "modifyElement":
             // 服务端要求用户更新/添加某个元素
@@ -251,6 +257,20 @@ function joinWhiteBoard() {
 }
 
 /* 公用方法 */
+// 推送底部提示
 function tip(s) {
     document.querySelector("#toastBar").MaterialSnackbar.showSnackbar({message: s});
+}
+// 通过白板名称设置URL
+function setUrl(boardName) {
+    let newUrl = window.location.href.split("?")[0] + "?boardName=" + boardName;
+    history.replaceState(null, null, newUrl);
+}
+// 通过GET参数设置白板名称输入框的内容
+function setBoardNameValue() {
+    let strs = window.location.href.split("?boardName=");
+    if(strs.length === 2) {
+        // 如果没有boardName参数,长度只会为1
+        $("#boardName").val(strs[1])
+    }
 }

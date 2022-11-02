@@ -79,6 +79,7 @@ func (user *User) receiveMessage() {
 			}
 			reply = &Message{
 				Action:  "createWhiteBoard",
+				Value:   boardName,
 				Success: success,
 			}
 		case "joinWhiteBoard":
@@ -87,8 +88,11 @@ func (user *User) receiveMessage() {
 			reply = &Message{
 				Action:  "joinWhiteBoard",
 				Success: user.joinWhiteBoard(boardName),
-				// 要先join才能get到 :(
-				Value: user.getPageElements(),
+				Value:   boardName,
+			}
+			if reply.Success {
+				// 加入成功后立即更新页面内容
+				user.modifyPage()
 			}
 		case "modifyElement":
 			// 添加/修改元素
@@ -149,4 +153,12 @@ func (user *User) delete() {
 			delete(Boards[user.Board].Users, user.Name)
 		}
 	}
+}
+
+// 更新用户页面所有内容
+func (user *User) modifyPage() {
+	user.sendMessage(&Message{
+		Action: "modifyPage",
+		Value:  user.getPageElements(),
+	})
 }
