@@ -8,11 +8,8 @@ ADD .  /board
 RUN go env -w GO111MODULE=on
 RUN go env -w GOPROXY=https://goproxy.cn,direct
 
-RUN go mod init search
+# 编译
 RUN go build main.go
-
-
-#RUN go build -o main main.go
 
 EXPOSE 8000
 

@@ -64,7 +64,7 @@ span.tool {
     font-family: 'Material Symbols Outlined';
     font-style: normal;
     font-weight: 500;
-    src: url(https://fonts.gstatic.com/s/materialsymbolsoutlined/v63/kJF4BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY40KH8nGzv3fz_VFU22ZZLsYEpzC_1sWr5Y0J1Llf.woff2) format('woff2');
+    src: url("/static/woff/material_outline.woff2") format('woff2');
 }
 
 .material-symbols-outlined {
