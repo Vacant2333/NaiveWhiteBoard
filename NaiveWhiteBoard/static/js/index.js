@@ -149,18 +149,12 @@ function addElement(type) {
     // 更改事件
     ele.on("modified", function () {
         // 通知服务端修改元素
-        ws.send(JSON.stringify({
-            "Action": "modifyElement",
-            "Value": ele,
-        }));
+        ws.sendMessage("modifyElement", ele);
     });
     // 存入本地
     elements[ele.id] = ele
     // 通知服务端添加元素
-    ws.send(JSON.stringify({
-        "Action": "modifyElement",
-        "Value": ele,
-    }));
+    ws.sendMessage("modifyElement", ele);
     canvas.add(ele);
     canvas.setActiveObject(ele);
 }
@@ -179,17 +173,14 @@ function drawElement(element) {
     temp.fromObject(element, function (obj) {
         if(elements[element.id] !== null) {
             // 如果这个元素已存在,要删除之前那个
-            canvas.remove(elements[element.id])
+            canvas.remove(elements[element.id]);
         }
         // 更改事件
         obj.on("modified", function () {
             // 通知服务端修改元素
-            ws.send(JSON.stringify({
-                "Action": "modifyElement",
-                "Value": obj,
-            }));
+            ws.sendMessage("modifyElement", obj);
         })
-        elements[element.id] = obj
+        elements[element.id] = obj;
         canvas.add(obj);
     });
 }
@@ -203,6 +194,7 @@ ws.onopen = function() {
 ws.onclose = function () {
     tip("连接至服务器失败,请稍后重试");
 };
+// 接受来自服务端的信息
 ws.onmessage = function(e) {
     let reply = JSON.parse(e.data)
     switch (reply["Action"]) {
@@ -242,26 +234,27 @@ ws.onmessage = function(e) {
             break;
     }
 };
+// 给服务端发送某个信息
+ws.sendMessage = function (action, value) {
+    ws.send(JSON.stringify({
+        "Action": action,
+        "Value": value,
+    }));
+};
 // 创建白板
 function createWhiteBoard() {
-    let name = $("#boardName").val();
-    if(name.length > 0) {
-        ws.send(JSON.stringify({
-            "Action": "createWhiteBoard",
-            "Value": name,
-        }));
+    let boardName = $("#boardName").val();
+    if(boardName.length > 0) {
+        ws.sendMessage("createWhiteBoard", boardName);
     } else {
         tip("请输入白板名称");
     }
 }
 // 加入白板
 function joinWhiteBoard() {
-    let name = $("#boardName").val();
-    if(name.length > 0) {
-        ws.send(JSON.stringify({
-            "Action": "joinWhiteBoard",
-            "Value": name,
-        }));
+    let boardName = $("#boardName").val();
+    if(boardName.length > 0) {
+        ws.sendMessage("joinWhiteBoard", boardName);
     } else {
         tip("请输入白板名称");
     }
