@@ -189,66 +189,71 @@ function drawElement(element) {
 }
 
 /* WebSocket */
-// 初始化WebSocket
-let ws = new WebSocket("ws://" + window.location.host + "/connect")
-ws.onopen = function() {
-    $(".join").show();
-};
-ws.onclose = function () {
-    tip("连接至服务器失败,请稍后重试");
-};
-// 接受来自服务端的信息
-ws.onmessage = function(e) {
-    let reply = JSON.parse(e.data)
-    switch (reply["Action"]) {
-        case "createWhiteBoard":
-            // 创建白板的回复
-            if(reply["Success"]) {
-                // 创建成功,进入主界面
-                $(".join").hide();
-                $(".mask").hide();
-                // Value为白板名称,修改当前URL用于分享
-                setUrl(reply["Value"])
-                tip("白板创建成功!");
-            } else {
-                tip("白板已存在,您可加入该白板");
-            }
-            break;
-        case "joinWhiteBoard":
-            // 加入白板的回复
-            if(reply["Success"]) {
-                // 加入成功,进入主界面
-                $(".join").hide();
-                $(".mask").hide();
-                // Value为白板名称,修改当前URL用于分享
-                setUrl(reply["Value"]);
-                tip("加入白板成功!");
-            } else {
-                tip("白板不存在,您可创建该白板");
-            }
-            break;
-        case "modifyPage":
-            // 服务端要求要求用户更新页面所有数据
-            resetCanvas(reply["Value"]);
-            break;
-        case "modifyElement":
-            // 服务端要求用户更新/添加某个元素
-            drawElement(reply["Value"]);
-            break;
-        case "removeElement":
-            // 服务端要求用户删除某个元素
-            canvas.remove(elements[reply["Value"]]);
-            delete elements[reply["Value"]];
-            break;
-    }
-};
-// 给服务端发送某个信息
-ws.sendMessage = function (action, value) {
-    ws.send(JSON.stringify({
-        "Action": action,
-        "Value": value,
-    }));
-};
+let ws;
+initWebSocket();
+// 初始化WebSocket,放在function中才能实现重连
+function initWebSocket() {
+    ws = new WebSocket("ws://" + window.location.host + "/connect");
+    ws.onopen = function() {
+        $(".join").show();
+    };
+    ws.onclose = function () {
+        tip("服务器连接失败,请稍后重试~");
+        setLoginFormDisplay(true, false);
+        // 定时重连
+        setTimeout(initWebSocket, 5000);
+    };
+    // 接受来自服务端的信息
+    ws.onmessage = function(e) {
+        let reply = JSON.parse(e.data)
+        switch (reply["Action"]) {
+            case "createWhiteBoard":
+                // 创建白板的回复
+                if(reply["Success"]) {
+                    // 创建成功,进入主界面
+                    setLoginFormDisplay(false, false);
+                    // Value为白板名称,修改当前URL用于分享
+                    setUrl(reply["Value"])
+                    tip("白板创建成功!");
+                } else {
+                    tip("白板已存在,您可加入该白板");
+                }
+                break;
+            case "joinWhiteBoard":
+                // 加入白板的回复
+                if(reply["Success"]) {
+                    // 加入成功,进入主界面
+                    setLoginFormDisplay(false, false);
+                    // Value为白板名称,修改当前URL用于分享
+                    setUrl(reply["Value"]);
+                    tip("加入白板成功!");
+                } else {
+                    tip("白板不存在,您可创建该白板");
+                }
+                break;
+            case "modifyPage":
+                // 服务端要求要求用户更新页面所有数据
+                resetCanvas(reply["Value"]);
+                break;
+            case "modifyElement":
+                // 服务端要求用户更新/添加某个元素
+                drawElement(reply["Value"]);
+                break;
+            case "removeElement":
+                // 服务端要求用户删除某个元素
+                canvas.remove(elements[reply["Value"]]);
+                delete elements[reply["Value"]];
+                break;
+        }
+    };
+    // 给服务端发送某个信息
+    ws.sendMessage = function (action, value) {
+        ws.send(JSON.stringify({
+            "Action": action,
+            "Value": value,
+        }));
+    };
+}
 // 创建白板
 function createWhiteBoard() {
     let boardName = $("#boardName").val();
@@ -284,5 +289,18 @@ function setBoardNameValue() {
     if(strs.length === 2) {
         // 如果没有boardName参数,长度只会为1
         $("#boardName").val(strs[1]);
+    }
+}
+// 显示/隐藏mask和join页面
+function setLoginFormDisplay(mask, join) {
+    if(mask) {
+        $(".mask").show();
+    } else {
+        $(".mask").hide();
+    }
+    if(join) {
+        $(".join").show();
+    } else {
+        $(".join").hide();
     }
 }

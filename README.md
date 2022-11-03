@@ -14,7 +14,7 @@ Demo: [http://blog.vacant.zone:8000/?boardName=100](http://blog.vacant.zone:8000
 TODO:
 1. 删除元素         done
 2. Group状态改变
-3. WebSocket重试
+3. WebSocket重试   done
 4. 分享按钮         done
 5. 铅笔
 6. 直线
