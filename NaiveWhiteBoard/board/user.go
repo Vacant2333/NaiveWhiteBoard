@@ -99,6 +99,10 @@ func (user *User) receiveMessage() {
 			element := Element(msg.Value.(map[string]interface{}))
 			// 在用户对应的白板和页面中操作该元素
 			Boards[user.Board].modifyElement(element, user.Page, user.Name)
+		case "removeElement":
+			// 删除元素
+			element := Element(msg.Value.(map[string]interface{}))
+			Boards[user.Board].removeElement(int(element["id"].(float64)), user.Page, user.Name)
 		}
 		if reply != nil {
 			// 回复用户

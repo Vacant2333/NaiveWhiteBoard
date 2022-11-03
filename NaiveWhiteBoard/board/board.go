@@ -20,18 +20,34 @@ func init() {
 	Boards = make(map[string]*WhiteBoard)
 }
 
+// 给该Board的所有用户发送信息
+func (board *WhiteBoard) sendMessageToAll(msg *Message, page int, expectUser string) {
+	for name := range board.Users {
+		// page为-1则不限页面
+		if (Users[name].Page == page || page == -1) && name != expectUser {
+			Users[name].sendMessage(msg)
+		}
+	}
+}
+
 // 添加元素,并且通知所有的用户
-func (board *WhiteBoard) modifyElement(element Element, page int, expectUser string) {
+func (board *WhiteBoard) modifyElement(element Element, page int, actionUser string) {
 	elementId := int(element["id"].(float64))
 	board.Pages[page][elementId] = element
 	msg := &Message{
 		Action: "modifyElement",
 		Value:  element,
 	}
-	// 通知page对应的用户更新
-	for name := range board.Users {
-		if Users[name].Page == page && name != expectUser {
-			Users[name].sendMessage(msg)
-		}
+	board.sendMessageToAll(msg, page, actionUser)
+}
+
+// 删除元素,并且通知所有用户
+func (board *WhiteBoard) removeElement(elementID int, page int, actionUser string) {
+	msg := &Message{
+		Action: "removeElement",
+		Value:  elementID,
 	}
+	// 删除存在服务端的Element
+	delete(board.Pages[page], elementID)
+	board.sendMessageToAll(msg, page, actionUser)
 }

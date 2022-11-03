@@ -12,7 +12,7 @@ addElement
 Demo: [http://blog.vacant.zone:8000/?boardName=100](http://blog.vacant.zone:8000/?boardName=100)
 
 TODO:
-1. 删除元素
+1. 删除元素         done
 2. Group状态改变
 3. WebSocket重试
 4. 分享按钮         done

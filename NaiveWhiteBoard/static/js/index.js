@@ -108,8 +108,10 @@ document.onkeydown = function (e) {
         if(canvas.getActiveObjects().length === 1 && canvas.getActiveObject().type === "i-text") {
             // 选中的文字区域,不执行删除
         } else {
-            canvas.getActiveObjects().forEach(function (c) {
-                canvas.remove(c);
+            canvas.getActiveObjects().forEach(function (target) {
+                canvas.remove(target);
+                delete elements[target.id];
+                ws.sendMessage("removeElement", target);
             });
             canvas.discardActiveObject(null);
         }
@@ -169,7 +171,8 @@ function resetCanvas(data) {
 }
 // 根据服务器传来的数据来添加/修改元素
 function drawElement(element) {
-    let temp = fabric.util.getKlass(element["type"]);
+    // flag
+    let temp = fabric.util.getKlass(element["type"], "");
     temp.fromObject(element, function (obj) {
         if(elements[element.id] !== null) {
             // 如果这个元素已存在,要删除之前那个
@@ -180,7 +183,7 @@ function drawElement(element) {
             // 通知服务端修改元素
             ws.sendMessage("modifyElement", obj);
         })
-        elements[element.id] = obj;
+        elements[obj.id] = obj;
         canvas.add(obj);
     });
 }
@@ -218,7 +221,7 @@ ws.onmessage = function(e) {
                 $(".join").hide();
                 $(".mask").hide();
                 // Value为白板名称,修改当前URL用于分享
-                setUrl(reply["Value"])
+                setUrl(reply["Value"]);
                 tip("加入白板成功!");
             } else {
                 tip("白板不存在,您可创建该白板");
@@ -226,11 +229,16 @@ ws.onmessage = function(e) {
             break;
         case "modifyPage":
             // 服务端要求要求用户更新页面所有数据
-            resetCanvas(reply["Value"])
+            resetCanvas(reply["Value"]);
             break;
         case "modifyElement":
             // 服务端要求用户更新/添加某个元素
             drawElement(reply["Value"]);
+            break;
+        case "removeElement":
+            // 服务端要求用户删除某个元素
+            canvas.remove(elements[reply["Value"]]);
+            delete elements[reply["Value"]];
             break;
     }
 };
