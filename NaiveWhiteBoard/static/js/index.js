@@ -10,7 +10,7 @@ fabric.Object.prototype.transparentCorners = false;
 fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
-// 从URL读白班名称到输入框
+// 从URL读白板名到输入框内
 setBoardNameValue();
 
 /* 功能 */
