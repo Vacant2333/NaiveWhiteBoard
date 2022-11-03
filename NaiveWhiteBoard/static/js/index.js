@@ -1,23 +1,25 @@
-// 缩放限制
-const minZoom = 0.5;
-const maxZoom = 5;
 // 画布中所有的元素
 let elements = {};
-// 初始化画布
-var canvas = new fabric.Canvas('board', {
-    width: window.innerWidth,
-    height: window.innerHeight,
-    backgroundColor: "#f2f2f2",
-});
-fabric.Object.prototype.transparentCorners = false;
-fabric.Object.prototype.cornerColor = '#B2CCFF';
-fabric.Object.prototype.cornerSize = 9;
-fabric.Object.prototype.cornerStyle = 'circle';
-
+// 画布
+let canvas;
+initCanvas();
 // 从URL读白班名称到输入框
 setBoardNameValue();
 
 /* 功能 */
+// 初始化画布
+function initCanvas() {
+    canvas = new fabric.Canvas('board', {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: "#f2f2f2",
+    });
+    fabric.Object.prototype.transparentCorners = false;
+    fabric.Object.prototype.cornerColor = '#B2CCFF';
+    fabric.Object.prototype.cornerSize = 9;
+    fabric.Object.prototype.cornerStyle = 'circle';
+}
+
 // 分享白板
 let clipboard = new ClipboardJS('#share', {
     // 通过target指定要复印的节点
@@ -58,8 +60,8 @@ window.onresize = function () {
 // 鼠标滚轮调整缩放
 canvas.on('mouse:wheel', function (opt){
     let zoom = canvas.getZoom() * 0.999 ** opt.e.deltaY;
-    if (zoom > maxZoom) zoom = maxZoom;
-    if (zoom < minZoom) zoom = minZoom;
+    if (zoom > 5) zoom = 5;
+    if (zoom < 0.5) zoom = 0.5;
     // 以鼠标所在位置为原点缩放
     canvas.zoomToPoint(
         {
@@ -160,9 +162,9 @@ function addElement(type) {
     canvas.add(ele);
     canvas.setActiveObject(ele);
 }
-// 重绘画布(加入时同步画布)
+// 重绘画布
 function resetCanvas(data) {
-    canvas.clear();
+    initCanvas();
     elements = Object.values(data);
     // 遍历所有从服务器传来的Element,通过这些Element生成对象
     elements.forEach(function (element) {
@@ -201,7 +203,7 @@ function initWebSocket() {
         tip("服务器连接失败,请稍后重试~");
         setLoginFormDisplay(true, false);
         // 定时重连
-        setTimeout(initWebSocket, 5000);
+        setTimeout(initWebSocket, 2500);
     };
     // 接受来自服务端的信息
     ws.onmessage = function(e) {

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>NaiveWhiteBoard</title>
+    <link rel="icon" href="/static/img/welcome.jpeg" type="image/x-icon">
     <script src="/static/js/jquery-3.6.1.min.js"></script>
     <!-- Fabric.js http://fabricjs.com/ -->
     <script src="/static/js/fabric.js"></script>
@@ -17,7 +18,7 @@
 </head>
 <body>
     <!-- 工具栏 -->
-    <div class="controls mdl-shadow--2dp" style="top: 120px">
+    <div class="controls mdl-shadow--2dp" style="top: 60px">
         <span class="material-symbols-outlined tool">edit</span>
         <span class="material-symbols-outlined tool">straight</span>
         <span class="material-symbols-outlined tool">moving</span>
@@ -26,14 +27,16 @@
         <span class="material-symbols-outlined tool" onclick="addElement('Triangle')">change_history</span>
         <span class="material-symbols-outlined tool" onclick="addElement('IText')">text_fields</span>
     </div>
-    <div class="controls mdl-shadow--2dp" style="top: 420px;">
-        <span class="material-symbols-outlined tool">undo</span>
-        <span class="material-symbols-outlined tool">redo</span>
-        <span class="material-symbols-outlined tool" id="share">share</span>
-    </div>
-    <div class="controls mdl-shadow--2dp" style="top: 560px;">
+    <div class="controls mdl-shadow--2dp" style="top: 350px;">
         <span class="material-symbols-outlined tool" id="group">group_work</span>
         <span class="material-symbols-outlined tool" id="ungroup">atr</span>
+        <span class="material-symbols-outlined tool">undo</span>
+        <span class="material-symbols-outlined tool">redo</span>
+    </div>
+    <div class="controls mdl-shadow--2dp" style="top: 520px;">
+        <span class="material-symbols-outlined tool" id="share">share</span>
+        <span class="material-symbols-outlined tool">file_download</span>
+        <span class="material-symbols-outlined tool">publish</span>
     </div>
     <!-- 新建/加入白板 -->
     <div class="join mdl-card mdl-shadow--2dp">
