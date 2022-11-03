@@ -19,13 +19,16 @@
 <body>
     <!-- 工具栏 -->
     <div class="controls mdl-shadow--2dp" style="top: 60px">
-        <span class="material-symbols-outlined tool">edit</span>
+        <span class="material-symbols-outlined tool" id="pencil">edit</span>
+        <div class="mdl-tooltip" data-mdl-for="pencil">
+            Upload <strong>file.zip</strong>
+        </div>
         <span class="material-symbols-outlined tool">straight</span>
         <span class="material-symbols-outlined tool">moving</span>
-        <span class="material-symbols-outlined tool" onclick="addElement('Circle')">circle</span>
-        <span class="material-symbols-outlined tool" onclick="addElement('Rect')">rectangle</span>
-        <span class="material-symbols-outlined tool" onclick="addElement('Triangle')">change_history</span>
-        <span class="material-symbols-outlined tool" onclick="addElement('IText')">text_fields</span>
+        <span class="material-symbols-outlined tool" onclick="canvas.addElement('Circle')">circle</span>
+        <span class="material-symbols-outlined tool" onclick="canvas.addElement('Rect')">rectangle</span>
+        <span class="material-symbols-outlined tool" onclick="canvas.addElement('Triangle')">change_history</span>
+        <span class="material-symbols-outlined tool" onclick="canvas.addElement('IText')">text_fields</span>
     </div>
     <div class="controls mdl-shadow--2dp" style="top: 350px;">
         <span class="material-symbols-outlined tool" id="group">group_work</span>

@@ -8,7 +8,10 @@ type WhiteBoard struct {
 	Users   map[string]bool // 所有已加入该白板的用户
 }
 
+// Page 页面内容
 type Page map[int]Element
+
+// Element 元素内容
 type Element map[string]interface{}
 
 // Boards 所有存在服务器中的白板数据

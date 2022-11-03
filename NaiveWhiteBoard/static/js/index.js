@@ -1,25 +1,19 @@
 // 画布中所有的元素
 let elements = {};
 // 画布
-let canvas;
-initCanvas();
+let canvas = new fabric.Canvas('board', {
+    width: window.innerWidth,
+    height: window.innerHeight,
+    backgroundColor: "#f2f2f2",
+});
+fabric.Object.prototype.transparentCorners = false;
+fabric.Object.prototype.cornerColor = '#B2CCFF';
+fabric.Object.prototype.cornerSize = 9;
+fabric.Object.prototype.cornerStyle = 'circle';
 // 从URL读白班名称到输入框
 setBoardNameValue();
 
 /* 功能 */
-// 初始化画布
-function initCanvas() {
-    canvas = new fabric.Canvas('board', {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        backgroundColor: "#f2f2f2",
-    });
-    fabric.Object.prototype.transparentCorners = false;
-    fabric.Object.prototype.cornerColor = '#B2CCFF';
-    fabric.Object.prototype.cornerSize = 9;
-    fabric.Object.prototype.cornerStyle = 'circle';
-}
-
 // 分享白板
 let clipboard = new ClipboardJS('#share', {
     // 通过target指定要复印的节点
@@ -28,7 +22,6 @@ let clipboard = new ClipboardJS('#share', {
         return window.location.href;
     }
 });
-
 // 分组/取消分组
 $("#group").click(function () {
     if (!canvas.getActiveObject()) {
@@ -88,8 +81,8 @@ canvas.on('mouse:down:before', function(opt) {
 });
 canvas.on('mouse:move', function(opt) {
     if (this.isDragging) {
-        var e = opt.e;
-        var vpt = this.viewportTransform;
+        let e = opt.e;
+        let vpt = this.viewportTransform;
         vpt[4] += e.clientX - this.lastPosX;
         vpt[5] += e.clientY - this.lastPosY;
         this.requestRenderAll();
@@ -119,8 +112,13 @@ document.onkeydown = function (e) {
         }
     }
 };
+// 删除某个元素
+canvas.removeElement = function (id) {
+    canvas.remove(elements[id]);
+    delete elements[id];
+};
 // 添加元素
-function addElement(type) {
+canvas.addElement = function (type) {
     let ele;
     switch(type) {
         case "Rect":
@@ -133,7 +131,7 @@ function addElement(type) {
             ele = new fabric.Triangle();
             break;
         case "IText":
-            ele = new fabric.IText("请输入内容...");
+            ele = new fabric.IText("输入内容...");
             break;
     }
     ele.set({
@@ -161,19 +159,20 @@ function addElement(type) {
     ws.sendMessage("modifyElement", ele);
     canvas.add(ele);
     canvas.setActiveObject(ele);
-}
+};
 // 重绘画布
-function resetCanvas(data) {
-    initCanvas();
-    elements = Object.values(data);
+canvas.resetCanvas = function (data) {
+    // 删除画布所有元素
+    for(const id in elements) {
+        canvas.removeElement(id);
+    }
     // 遍历所有从服务器传来的Element,通过这些Element生成对象
-    elements.forEach(function (element) {
-        drawElement(element)
+    Object.values(data).forEach(function (element) {
+        canvas.drawElement(element)
     });
-}
+};
 // 根据服务器传来的数据来添加/修改元素
-function drawElement(element) {
-    // flag
+canvas.drawElement = function (element) {
     let temp = fabric.util.getKlass(element["type"], "");
     temp.fromObject(element, function (obj) {
         if(elements[element.id] !== null) {
@@ -235,20 +234,19 @@ function initWebSocket() {
                 break;
             case "modifyPage":
                 // 服务端要求要求用户更新页面所有数据
-                resetCanvas(reply["Value"]);
+                canvas.resetCanvas(reply["Value"]);
                 break;
             case "modifyElement":
                 // 服务端要求用户更新/添加某个元素
-                drawElement(reply["Value"]);
+                canvas.drawElement(reply["Value"]);
                 break;
             case "removeElement":
                 // 服务端要求用户删除某个元素
-                canvas.remove(elements[reply["Value"]]);
-                delete elements[reply["Value"]];
+                canvas.removeElement(reply["Value"]);
                 break;
         }
     };
-    // 给服务端发送某个信息
+    // 给服务端发送信息
     ws.sendMessage = function (action, value) {
         ws.send(JSON.stringify({
             "Action": action,
