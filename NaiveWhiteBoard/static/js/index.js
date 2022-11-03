@@ -13,10 +13,20 @@ fabric.Object.prototype.transparentCorners = false;
 fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
-// 初始化boardName输入框的内容
+
+// 从URL读白班名称到输入框
 setBoardNameValue();
 
-/* 左侧功能 */
+/* 功能 */
+// 分享白板
+let clipboard = new ClipboardJS('#share', {
+    // 通过target指定要复印的节点
+    text: function() {
+        tip("已复制链接,快分享给好友吧!");
+        return window.location.href;
+    }
+});
+
 // 分组/取消分组
 $("#group").click(function () {
     if (!canvas.getActiveObject()) {
@@ -27,7 +37,7 @@ $("#group").click(function () {
     }
     canvas.getActiveObject().toGroup();
     canvas.requestRenderAll();
-})
+});
 $("#ungroup").click(function () {
     if (!canvas.getActiveObject()) {
         return;
@@ -37,14 +47,14 @@ $("#ungroup").click(function () {
     }
     canvas.getActiveObject().toActiveSelection();
     canvas.requestRenderAll();
-})
+});
 // 画布自适应窗口大小
 window.onresize = function () {
     canvas.setDimensions({
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
     });
-}
+};
 // 鼠标滚轮调整缩放
 canvas.on('mouse:wheel', function (opt){
     let zoom = canvas.getZoom() * 0.999 ** opt.e.deltaY;
@@ -59,7 +69,7 @@ canvas.on('mouse:wheel', function (opt){
     );
     opt.e.preventDefault();
     opt.e.stopPropagation();
-})
+});
 // 阻止右键菜单
 document.body.oncontextmenu = function(){
     return false;
@@ -104,7 +114,7 @@ document.onkeydown = function (e) {
             canvas.discardActiveObject(null);
         }
     }
-}
+};
 // 添加元素
 function addElement(type) {
     let ele;
@@ -143,7 +153,7 @@ function addElement(type) {
             "Action": "modifyElement",
             "Value": ele,
         }));
-    })
+    });
     // 存入本地
     elements[ele.id] = ele
     // 通知服务端添加元素
@@ -183,6 +193,7 @@ function drawElement(element) {
         canvas.add(obj);
     });
 }
+
 /* WebSocket */
 // 初始化WebSocket
 let ws = new WebSocket("ws://" + window.location.host + "/connect")
@@ -191,7 +202,7 @@ ws.onopen = function() {
 };
 ws.onclose = function () {
     tip("连接至服务器失败,请稍后重试");
-}
+};
 ws.onmessage = function(e) {
     let reply = JSON.parse(e.data)
     switch (reply["Action"]) {
@@ -230,7 +241,7 @@ ws.onmessage = function(e) {
             drawElement(reply["Value"]);
             break;
     }
-}
+};
 // 创建白板
 function createWhiteBoard() {
     let name = $("#boardName").val();
@@ -271,6 +282,6 @@ function setBoardNameValue() {
     let strs = window.location.href.split("?boardName=");
     if(strs.length === 2) {
         // 如果没有boardName参数,长度只会为1
-        $("#boardName").val(strs[1])
+        $("#boardName").val(strs[1]);
     }
 }

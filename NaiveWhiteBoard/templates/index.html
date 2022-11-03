@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>NaiveWhiteBoard</title>
     <script src="/static/js/jquery-3.6.1.min.js"></script>
     <!-- Fabric.js http://fabricjs.com/ -->
     <script src="/static/js/fabric.js"></script>
     <!-- Material Design Lite https://getmdl.io/ -->
     <link rel="stylesheet" href="/static/css/icon.css">
     <link rel="stylesheet" href="/static/css/material.indigo-pink.min.css">
-    <script defer src="/static/js/material.min.js"></script>
+    <script src="/static/js/material.min.js"></script>
+    <!-- clipboard.js https://clipboardjs.com/ -->
+    <script src="/static/js/clipboard.js"></script>
     <!-- 页面样式 -->
     <link href="/static/css/style.css" rel="stylesheet" type="text/css">
 </head>
@@ -27,7 +29,7 @@
     <div class="controls mdl-shadow--2dp" style="top: 420px;">
         <span class="material-symbols-outlined tool">undo</span>
         <span class="material-symbols-outlined tool">redo</span>
-        <span class="material-symbols-outlined tool">share</span>
+        <span class="material-symbols-outlined tool" id="share">share</span>
     </div>
     <div class="controls mdl-shadow--2dp" style="top: 560px;">
         <span class="material-symbols-outlined tool" id="group">group_work</span>
