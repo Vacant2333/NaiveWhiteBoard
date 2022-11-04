@@ -101,7 +101,7 @@ func (user *User) receiveMessage() {
 			Boards[user.Board].modifyElement(element, user.Page, user.Name)
 		case "removeElement":
 			// 删除元素
-			Boards[user.Board].removeElement(msg.Value.(int), user.Page, user.Name)
+			Boards[user.Board].removeElement(int(msg.Value.(float64)), user.Page, user.Name)
 		case "downloadPage":
 			// 下载当前页面的配置
 			reply = &Message{

@@ -1,5 +1,3 @@
-// 画布中所有的元素
-let elements = {};
 // 画布
 let canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
@@ -22,22 +20,18 @@ let clipboard = new ClipboardJS('#share', {
         return window.location.href;
     }
 });
-// 分组/取消分组
+// 合体/分离
 $("#group").click(function () {
-    if (!canvas.getActiveObject()) {
+    if(!canvas.getActiveObject() || canvas.getActiveObject().type !== 'activeSelection') {
         return;
     }
-    if (canvas.getActiveObject().type !== 'activeSelection') {
-        return;
-    }
-    canvas.getActiveObject().toGroup();
+    let group = canvas.getActiveObject().toGroup();
+    group.id = randId();
+
     canvas.requestRenderAll();
 });
 $("#ungroup").click(function () {
-    if (!canvas.getActiveObject()) {
-        return;
-    }
-    if (canvas.getActiveObject().type !== 'group') {
+    if(!canvas.getActiveObject() || canvas.getActiveObject().type !== 'activeSelection') {
         return;
     }
     canvas.getActiveObject().toActiveSelection();
@@ -104,17 +98,21 @@ document.onkeydown = function (e) {
             // 选中的文字区域,不执行删除
         } else {
             canvas.getActiveObjects().forEach(function (target) {
-                canvas.removeElement(target.id)
+                canvas.remove(canvas.getElementById(target.id));
                 ws.sendMessage("removeElement", target.id);
             });
             canvas.discardActiveObject(null);
         }
     }
 };
-// 删除某个元素
-canvas.removeElement = function (id) {
-    canvas.remove(elements[id]);
-    delete elements[id];
+// 根据ID获得某个元素
+canvas.getElementById = function (id) {
+    for(const element of canvas.getObjects()) {
+        if(element.id === id) {
+            return element;
+        }
+    }
+    return null;
 };
 // 添加元素
 canvas.addElement = function (type) {
@@ -146,14 +144,12 @@ canvas.addElement = function (type) {
         "originY": "center",
     });
     // 元素的固定ID
-    ele.id = Math.floor(Math.random()*10000000)
+    ele.id = randId()
     // 更改事件
     ele.on("modified", function () {
         // 通知服务端修改元素
         ws.sendMessage("modifyElement", ele);
     });
-    // 存入本地
-    elements[ele.id] = ele
     // 通知服务端添加元素
     ws.sendMessage("modifyElement", ele);
     canvas.add(ele);
@@ -165,8 +161,6 @@ canvas.resetCanvas = function (data) {
     for(const ele of canvas.getObjects()) {
         canvas.remove(ele);
     }
-    // 清空当前元素
-    elements = {};
     if(data != null) {
         // 遍历所有从服务器传来的Element,通过这些Element生成对象
         Object.values(data).forEach(function (element) {
@@ -177,18 +171,17 @@ canvas.resetCanvas = function (data) {
 // 根据服务器传来的数据来添加/修改元素
 canvas.drawElement = function (element) {
     let temp = fabric.util.getKlass(element["type"], "");
-    temp.fromObject(element, function (obj) {
-        if(elements[element.id] !== null) {
+    temp.fromObject(element, function (ele) {
+        if(canvas.getElementById(ele.id) !== null) {
             // 如果这个元素已存在,要删除之前那个
-            canvas.remove(elements[element.id]);
+            canvas.remove(canvas.getElementById(ele.id));
         }
         // 更改事件
-        obj.on("modified", function () {
+        ele.on("modified", function () {
             // 通知服务端修改元素
-            ws.sendMessage("modifyElement", obj);
+            ws.sendMessage("modifyElement", ele);
         })
-        elements[obj.id] = obj;
-        canvas.add(obj);
+        canvas.add(ele);
     });
 }
 // 下载当前页面配置
@@ -264,7 +257,7 @@ function initWebSocket() {
                 break;
             case "removeElement":
                 // 服务端要求用户删除某个元素
-                canvas.removeElement(reply["Value"]);
+                canvas.remove(canvas.getElementById(reply["Value"]));
                 break;
             case "downloadPage":
                 // 下载当前页面的配置
@@ -345,4 +338,8 @@ function downloadFileFromBlob(blob, fileName) {
     link.click()
     // 移除
     document.body.removeChild(link)
+}
+// 生成随机ID
+function randId() {
+    return Math.floor(Math.random()*100000000)
 }
