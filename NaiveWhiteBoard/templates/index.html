@@ -18,7 +18,7 @@
 </head>
 <body>
     <!-- 工具栏 -->
-    <div class="controls mdl-shadow--2dp" style="top: 60px">
+    <div class="controls mdl-shadow--3dp" style="top: 60px">
         <span class="material-symbols-outlined tool" id="pencil">edit</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="pencil">铅笔</div>
         <span class="material-symbols-outlined tool" id="line">straight</span>
@@ -34,7 +34,7 @@
         <span class="material-symbols-outlined tool" id="itext" onclick="canvas.addElement('IText')">text_fields</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="itext">文字框</div>
     </div>
-    <div class="controls mdl-shadow--2dp" style="top: 350px;">
+    <div class="controls mdl-shadow--3dp" style="top: 350px;">
         <span class="material-symbols-outlined tool" id="group">group_work</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="group">分组</div>
         <span class="material-symbols-outlined tool" id="ungroup">atr</span>
@@ -44,14 +44,16 @@
         <span class="material-symbols-outlined tool" id="redo">redo</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="redo">重做</div>
     </div>
-    <div class="controls mdl-shadow--2dp" style="top: 520px;">
+    <div class="controls mdl-shadow--3dp" style="top: 520px;">
         <span class="material-symbols-outlined tool" id="share">share</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="share">分享白板</div>
-        <span class="material-symbols-outlined tool" id="file_download">file_download</span>
-        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="file_download">下载配置</div>
-        <span class="material-symbols-outlined tool" id="file_upload">publish</span>
-        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="file_upload">上传配置</div>
+        <span class="material-symbols-outlined tool" id="downloadPage">file_download</span>
+        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="downloadPage">下载当前页面的配置信息</div>
+        <span class="material-symbols-outlined tool" id="uploadPage" onclick="$('#uploadForm').click()">publish</span>
+        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="uploadPage">上传配置信息(会清空当前页面)</div>
     </div>
+    <!-- 上传表单 -->
+    <input type="file" style="display:none" id="uploadForm" />
     <!-- 新建/加入白板 -->
     <div class="join mdl-card mdl-shadow--2dp">
         <div class="title"></div>

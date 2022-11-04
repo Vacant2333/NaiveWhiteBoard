@@ -1,5 +1,9 @@
 package board
 
+import (
+	"strconv"
+)
+
 // WhiteBoard 白板
 type WhiteBoard struct {
 	Name    string          // 白板名称
@@ -9,10 +13,10 @@ type WhiteBoard struct {
 }
 
 // Page 页面内容
-type Page map[int]Element
+type Page = map[int]Element
 
 // Element 元素内容
-type Element map[string]interface{}
+type Element = map[string]interface{}
 
 // Boards 所有存在服务器中的白板数据
 var Boards map[string]*WhiteBoard
@@ -53,4 +57,22 @@ func (board *WhiteBoard) removeElement(elementID int, page int, actionUser strin
 	// 删除存在服务端的Element
 	delete(board.Pages[page], elementID)
 	board.sendMessageToAll(msg, page, actionUser)
+}
+
+// 从配置文件读取内容到页面中,并通知所有用户刷新页面
+func (board *WhiteBoard) readConfigFromJson(pageJson interface{}, page int) {
+	// 清空页面内容
+	board.Pages[page] = make(map[int]Element)
+	// 遍历所有的element,逐个转换类型
+	for id, element := range pageJson.(map[string]interface{}) {
+		// 实际类型是map[int]interface{} 但是自动转为了string,这里把id转回来
+		rid, _ := strconv.Atoi(id)
+		board.Pages[page][rid] = element.(Element)
+	}
+	msg := &Message{
+		Action: "modifyPage",
+		Value:  board.Pages[page],
+	}
+	// 通知所有用户刷新页面
+	board.sendMessageToAll(msg, page, "")
 }

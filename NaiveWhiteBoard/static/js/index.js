@@ -104,9 +104,8 @@ document.onkeydown = function (e) {
             // 选中的文字区域,不执行删除
         } else {
             canvas.getActiveObjects().forEach(function (target) {
-                canvas.remove(target);
-                delete elements[target.id];
-                ws.sendMessage("removeElement", target);
+                canvas.removeElement(target.id)
+                ws.sendMessage("removeElement", target.id);
             });
             canvas.discardActiveObject(null);
         }
@@ -163,13 +162,17 @@ canvas.addElement = function (type) {
 // 重绘画布
 canvas.resetCanvas = function (data) {
     // 删除画布所有元素
-    for(const id in elements) {
-        canvas.removeElement(id);
+    for(const ele of canvas.getObjects()) {
+        canvas.remove(ele);
     }
-    // 遍历所有从服务器传来的Element,通过这些Element生成对象
-    Object.values(data).forEach(function (element) {
-        canvas.drawElement(element)
-    });
+    // 清空当前元素
+    elements = {};
+    if(data != null) {
+        // 遍历所有从服务器传来的Element,通过这些Element生成对象
+        Object.values(data).forEach(function (element) {
+            canvas.drawElement(element)
+        });
+    }
 };
 // 根据服务器传来的数据来添加/修改元素
 canvas.drawElement = function (element) {
@@ -188,6 +191,22 @@ canvas.drawElement = function (element) {
         canvas.add(obj);
     });
 }
+// 下载当前页面配置
+$("#downloadPage").click(function () {
+    ws.sendMessage("downloadPage");
+});
+// 上传页面配置,点击上传Span后会打开隐藏的上传表单,表单改变时触发此函数
+$("#uploadForm").change(function (e) {
+    let reader = new FileReader();
+    reader.readAsText(e.target.files[0]);
+    reader.onload = function (e) {
+        // 将JSON解析为后端的Page格式后传回
+        let pageJson = e.target.result.toString();
+        ws.sendMessage("uploadPage", JSON.parse(pageJson));
+    }
+    // 清空表单
+    e.target.value = "";
+});
 
 /* WebSocket */
 let ws;
@@ -196,7 +215,8 @@ initWebSocket();
 function initWebSocket() {
     ws = new WebSocket("ws://" + window.location.host + "/connect");
     ws.onopen = function() {
-        $(".join").show();
+        // 连接WebSocket成功,显示登录界面(mask默认显示)
+        setLoginFormDisplay(true, true);
     };
     ws.onclose = function () {
         tip("服务器连接失败,请稍后重试~");
@@ -211,6 +231,8 @@ function initWebSocket() {
             case "createWhiteBoard":
                 // 创建白板的回复
                 if(reply["Success"]) {
+                    // 清空画布
+                    canvas.resetCanvas();
                     // 创建成功,进入主界面
                     setLoginFormDisplay(false, false);
                     // Value为白板名称,修改当前URL用于分享
@@ -244,6 +266,11 @@ function initWebSocket() {
                 // 服务端要求用户删除某个元素
                 canvas.removeElement(reply["Value"]);
                 break;
+            case "downloadPage":
+                // 下载当前页面的配置
+                let blob = new Blob([JSON.stringify(reply["Value"])]);
+                downloadFileFromBlob(blob, "page.json");
+                break;
         }
     };
     // 给服务端发送信息
@@ -254,7 +281,7 @@ function initWebSocket() {
         }));
     };
 }
-// 创建白板
+// 发送创建白板请求
 function createWhiteBoard() {
     let boardName = $("#boardName").val();
     if(boardName.length > 0) {
@@ -263,7 +290,7 @@ function createWhiteBoard() {
         tip("请输入白板名称");
     }
 }
-// 加入白板
+// 发送加入白板请求
 function joinWhiteBoard() {
     let boardName = $("#boardName").val();
     if(boardName.length > 0) {
@@ -276,7 +303,9 @@ function joinWhiteBoard() {
 /* 公用方法 */
 // 推送底部提示
 function tip(s) {
-    document.querySelector("#toastBar").MaterialSnackbar.showSnackbar({message: s});
+    document.querySelector("#toastBar").MaterialSnackbar.showSnackbar({
+        message: s
+    });
 }
 // 通过白板名称设置URL
 function setUrl(boardName) {
@@ -303,4 +332,17 @@ function setLoginFormDisplay(mask, join) {
     } else {
         $(".join").hide();
     }
+}
+// 从Blob下载文件
+function downloadFileFromBlob(blob, fileName) {
+    let blobUrl = window.URL.createObjectURL(blob)
+    let link = document.createElement('a')
+    link.download = fileName
+    link.style.display = 'none'
+    link.href = blobUrl
+    // 触发点击
+    document.body.appendChild(link)
+    link.click()
+    // 移除
+    document.body.removeChild(link)
 }

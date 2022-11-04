@@ -40,7 +40,7 @@ func (user *User) receiveMessage() {
 	defer func() {
 		if err := recover(); err != nil {
 			// 错误恢复,打印调用栈
-			recover()
+			fmt.Println("err=", err)
 			debug.PrintStack()
 		}
 	}()
@@ -96,13 +96,21 @@ func (user *User) receiveMessage() {
 			}
 		case "modifyElement":
 			// 添加/修改元素
-			element := Element(msg.Value.(map[string]interface{}))
+			element := msg.Value.(Element)
 			// 在用户对应的白板和页面中操作该元素
 			Boards[user.Board].modifyElement(element, user.Page, user.Name)
 		case "removeElement":
 			// 删除元素
-			element := Element(msg.Value.(map[string]interface{}))
-			Boards[user.Board].removeElement(int(element["id"].(float64)), user.Page, user.Name)
+			Boards[user.Board].removeElement(msg.Value.(int), user.Page, user.Name)
+		case "downloadPage":
+			// 下载当前页面的配置
+			reply = &Message{
+				Action: "downloadPage",
+				Value:  user.getPageElements(),
+			}
+		case "uploadPage":
+			// 上传页面配置
+			Boards[user.Board].readConfigFromJson(msg.Value, user.Page)
 		}
 		if reply != nil {
 			// 回复用户
