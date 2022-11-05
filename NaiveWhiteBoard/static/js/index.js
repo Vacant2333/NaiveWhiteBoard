@@ -8,6 +8,7 @@ fabric.Object.prototype.transparentCorners = false;
 fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
+
 // 从URL读白板名到输入框内
 setBoardNameValue();
 
@@ -20,21 +21,24 @@ let clipboard = new ClipboardJS('#share', {
         return window.location.href;
     }
 });
-// 合体/分离
+// 合并
 $("#group").click(function () {
     if(!canvas.getActiveObject() || canvas.getActiveObject().type !== 'activeSelection') {
         return;
     }
-    let group = canvas.getActiveObject().toGroup();
-    group.id = randId();
-
-    canvas.requestRenderAll();
-});
-$("#ungroup").click(function () {
-    if(!canvas.getActiveObject() || canvas.getActiveObject().type !== 'activeSelection') {
-        return;
+    // 通知服务端删除被合体的元素
+    for(let element of canvas.getActiveObjects()) {
+        ws.sendMessage("removeElement", element.id);
     }
-    canvas.getActiveObject().toActiveSelection();
+    let group = canvas.getActiveObject().toGroup();
+    // Group操作实际上是将三个element合为一个新的element,所以需要重新给id和modify事件
+    group.id = randId();
+    group.on("modified", function () {
+        // 通知服务端修改元素
+        ws.sendMessage("modifyElement", group);
+    });
+    // 通知服务端添加合体元素
+    ws.sendMessage("modifyElement", group);
     canvas.requestRenderAll();
 });
 // 画布自适应窗口大小
@@ -50,12 +54,10 @@ canvas.on('mouse:wheel', function (opt){
     if (zoom > 5) zoom = 5;
     if (zoom < 0.5) zoom = 0.5;
     // 以鼠标所在位置为原点缩放
-    canvas.zoomToPoint(
-        {
+    canvas.zoomToPoint({
             x: opt.e.offsetX,
-            y: opt.e.offsetY
-        }, zoom
-    );
+            y: opt.e.offsetY,
+        }, zoom);
     opt.e.preventDefault();
     opt.e.stopPropagation();
 });
@@ -132,6 +134,8 @@ canvas.addElement = function (type) {
             break;
     }
     ele.set({
+        // 元素的固定ID
+        "id": randId(),
         "stroke": "black",
         "width": 200,
         "height": 200,
@@ -143,8 +147,6 @@ canvas.addElement = function (type) {
         "originX": "center",
         "originY": "center",
     });
-    // 元素的固定ID
-    ele.id = randId()
     // 更改事件
     ele.on("modified", function () {
         // 通知服务端修改元素
@@ -180,7 +182,7 @@ canvas.drawElement = function (element) {
         ele.on("modified", function () {
             // 通知服务端修改元素
             ws.sendMessage("modifyElement", ele);
-        })
+        });
         canvas.add(ele);
     });
 }
@@ -307,7 +309,8 @@ function setUrl(boardName) {
 }
 // 通过GET参数设置白板名称输入框的内容
 function setBoardNameValue() {
-    let strs = window.location.href.split("?boardName=");
+    let decode = decodeURI(window.location.href);
+    let strs = decode.split("?boardName=");
     if(strs.length === 2) {
         // 如果没有boardName参数,长度只会为1
         $("#boardName").val(strs[1]);
