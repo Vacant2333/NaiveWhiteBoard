@@ -8,6 +8,7 @@ fabric.Object.prototype.transparentCorners = false;
 fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
+fabric.Object.prototype.objectCaching = false;
 
 // 从URL读白板名到输入框内
 setBoardNameValue();
@@ -65,6 +66,18 @@ canvas.on('mouse:wheel', function (opt){
 document.body.oncontextmenu = function(){
     return false;
 };
+// 选中多个元素状态改变时同步
+canvas.on('selection:created', function () {
+    let group = canvas.getActiveObject();
+    if(group != null && group._objects != null && group._objects.length > 1) {
+        group.on("modified", function (e) {
+            for(let ele of e.target._objects) {
+               // let element = canvas.getElementById(ele.id)
+                ws.sendMessage("modifyElement", objToMap(ele));
+            }
+        });
+    }
+});
 // 右键拖拽移动画布
 canvas.on('mouse:down:before', function(opt) {
     if(opt.e.button === 2) {
@@ -183,6 +196,10 @@ canvas.drawElement = function (element) {
             // 通知服务端修改元素
             ws.sendMessage("modifyElement", ele);
         });
+        if(ele.matrixCache != null) {
+            ele.left = ele.matrixCache.value[4]
+            ele.top = ele.matrixCache.value[5]
+        }
         canvas.add(ele);
     });
 }
@@ -344,5 +361,16 @@ function downloadFileFromBlob(blob, fileName) {
 }
 // 生成随机ID
 function randId() {
-    return Math.floor(Math.random()*100000000)
+    return Math.floor(Math.random() * 100000000)
+}
+function objToMap(obj) {
+    let entries = Object.entries(obj);
+    let map = {};
+    for(let index in entries) {
+        if(entries[index][0] !== "canvas" && entries[index][0] !== "group" && entries[index][0] !== "__eventListeners" && entries[index][0] !== "_cacheCanvas") {
+            map[entries[index][0]] = entries[index][1]
+        }
+    }
+    map["type"] = obj.get("type")
+    return map
 }
