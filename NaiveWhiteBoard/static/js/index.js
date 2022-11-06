@@ -1,4 +1,6 @@
-// 画布
+// 从URL读白板名到输入框内
+setBoardNameValue();
+// 初始化画布
 let canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -9,9 +11,6 @@ fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
 fabric.Object.prototype.objectCaching = false;
-
-// 从URL读白板名到输入框内
-setBoardNameValue();
 
 /* 功能 */
 // 分享白板
@@ -31,8 +30,8 @@ $("#group").click(function () {
     for(let element of canvas.getActiveObjects()) {
         ws.sendMessage("removeElement", element.id);
     }
-    let group = canvas.getActiveObject().toGroup();
     // Group操作实际上是将三个element合为一个新的element,所以需要重新给id和modify事件
+    let group = canvas.getActiveObject().toGroup();
     group.id = randId();
     group.on("modified", function () {
         // 通知服务端修改元素
@@ -40,6 +39,26 @@ $("#group").click(function () {
     });
     // 通知服务端添加合体元素
     ws.sendMessage("modifyElement", group);
+    canvas.requestRenderAll();
+});
+// 分离
+$("#ungroup").click(function () {
+    if(!canvas.getActiveObject() || canvas.getActiveObject().type !== 'group') {
+        return;
+    }
+    let group = canvas.getActiveObject();
+    // 通知服务端删除selection
+    ws.sendMessage("removeElement", group.id)
+    for(let ele of group.toActiveSelection()._objects) {
+        ele.on("modified", function () {
+            // 通知服务端修改元素
+            ws.sendMessage("modifyElement", ele);
+        });
+        // 通知服务端添加分离出来的元素
+        ws.sendMessage("modifyElement", objToMap(ele))
+    }
+    // 设置多选对象的事件监听
+    onSelectionCreated();
     canvas.requestRenderAll();
 });
 // 画布自适应窗口大小
@@ -66,18 +85,19 @@ canvas.on('mouse:wheel', function (opt){
 document.body.oncontextmenu = function(){
     return false;
 };
-// 选中多个元素状态改变时同步
-canvas.on('selection:created', function () {
+// 建立多选时状态改变时同步
+canvas.on('selection:created', onSelectionCreated);
+function onSelectionCreated() {
     let group = canvas.getActiveObject();
     if(group != null && group._objects != null && group._objects.length > 1) {
-        group.on("modified", function (e) {
-            for(let ele of e.target._objects) {
-               // let element = canvas.getElementById(ele.id)
+        // 建立多选时给多选对象添加改变事件
+        group.on("modified", function () {
+            for(let ele of canvas.getActiveObjects()) {
                 ws.sendMessage("modifyElement", objToMap(ele));
             }
         });
     }
-});
+}
 // 右键拖拽移动画布
 canvas.on('mouse:down:before', function(opt) {
     if(opt.e.button === 2) {
