@@ -116,13 +116,8 @@ func (user *User) receiveMessage() {
 			}
 		case "uploadPage":
 			// 上传页面配置
-			if user.Board.Lock {
-				// 白板已锁定,上传失败
-				reply = &Message{
-					Action:  "uploadPage",
-					Success: false,
-				}
-			} else {
+			if !user.Board.Lock {
+				// 没有锁定才能上传配置
 				user.Board.readConfigFromJson(msg.Value, user.Page)
 			}
 		case "lockBoard":

@@ -35,20 +35,22 @@
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="itext">文字框</div>
     </div>
     <div class="controls mdl-shadow--3dp" style="top: 410px;">
-        <span class="material-symbols-outlined tool" id="lock">lock_open</span>
-        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="lock">锁定</div>
         <span class="material-symbols-outlined tool" id="undo">undo</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="undo">撤销</div>
         <span class="material-symbols-outlined tool" id="redo">redo</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="redo">重做</div>
     </div>
-    <div class="controls mdl-shadow--3dp" style="top: 540px;">
+    <div class="controls mdl-shadow--3dp" style="top: 500px;">
         <span class="material-symbols-outlined tool" id="share">share</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="share">分享白板</div>
         <span class="material-symbols-outlined tool" id="downloadPage">file_download</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="downloadPage">下载当前页面的配置信息</div>
-        <span class="material-symbols-outlined tool" id="uploadPage" onclick="$('#uploadForm').click()">publish</span>
-        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="uploadPage">上传配置信息(会清空当前页面)</div>
+        <span class="material-symbols-outlined tool" id="uploadPage">publish</span>
+        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="uploadPage">上传页面配置信息</div>
+    </div>
+    <div class="controls mdl-shadow--3dp" style="bottom: 10px;">
+        <span class="material-symbols-outlined tool" id="lock">lock_open</span>
+        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="lock">锁定</div>
     </div>
     <!-- 上传表单 -->
     <input type="file" style="display:none" id="uploadForm" />

@@ -108,6 +108,10 @@ canvas.getElementById = function (id) {
 };
 // 添加元素
 canvas.addElement = function (type) {
+    if(canvas.isLock()) {
+        tip("白板已锁定");
+        return;
+    }
     let ele;
     switch(type) {
         case "Rect":
@@ -190,6 +194,10 @@ canvas.setLock = function (lock) {
         tip("白板已解锁")
     }
 }
+// 是否已锁
+canvas.isLock = function () {
+    return $("#lock").text() === "lock";
+}
 // 下载当前页面配置
 $("#downloadPage").click(function () {
     ws.sendMessage("downloadPage");
@@ -205,6 +213,15 @@ $("#uploadForm").change(function (e) {
     }
     // 清空表单
     e.target.value = "";
+});
+// 上传按钮
+$("#uploadPage").click(function () {
+    if(canvas.isLock()) {
+        // 已锁定,不允许上传
+        tip("白板已锁定");
+    } else {
+        $('#uploadForm').click()
+    }
 });
 // 设定锁定模式
 $("#lock").click(function () {
@@ -274,19 +291,15 @@ function initWebSocket() {
                 // 下载当前页面的配置
                 downloadFileFromBlob(reply["Value"], "page.json");
                 break;
-            case "uploadPage":
-                // 上传失败,如果成功不会发送这个msg,会发送modifyPage
-                if(!reply["Success"]) {
-                    tip("上传失败,白板已锁定")
-                }
             case "lockBoard":
                 // 锁定白板
                 if(!reply["Success"]) {
                     // 操作锁定失败,不是创建者
                     tip("创建者才能设置锁定状态");
                 } else {
-                    canvas.setLock(reply["Value"])
+                    canvas.setLock(reply["Value"]);
                 }
+                break;
         }
     };
     // 给服务端发送信息
