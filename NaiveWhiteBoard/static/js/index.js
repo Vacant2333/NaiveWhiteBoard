@@ -49,7 +49,11 @@ $("#ungroup").click(function () {
     let group = canvas.getActiveObject();
     // 通知服务端删除selection
     ws.sendMessage("removeElement", group.id)
-    for(let ele of group.toActiveSelection()._objects) {
+    let objs = group.toActiveSelection()._objects;
+    // 设置多选对象的事件监听
+    onSelectionCreated();
+    canvas.requestRenderAll();
+    for(let ele of objs) {
         ele.on("modified", function () {
             // 通知服务端修改元素
             ws.sendMessage("modifyElement", ele);
@@ -57,9 +61,12 @@ $("#ungroup").click(function () {
         // 通知服务端添加分离出来的元素
         ws.sendMessage("modifyElement", objToMap(ele))
     }
-    // 设置多选对象的事件监听
-    onSelectionCreated();
-    canvas.requestRenderAll();
+    // setTimeout(function () {
+    //     for(let ele of canvas.getActiveObjects()) {
+    //         // 通知服务端添加分离出来的元素
+    //         ws.sendMessage("modifyElement", objToMap(ele))
+    //     }
+    // }, 1000)
 });
 // 画布自适应窗口大小
 window.onresize = function () {
@@ -89,7 +96,7 @@ document.body.oncontextmenu = function(){
 canvas.on('selection:created', onSelectionCreated);
 function onSelectionCreated() {
     let group = canvas.getActiveObject();
-    if(group != null && group._objects != null && group._objects.length > 1) {
+    if(group != null && group.type !== "group" && group._objects != null && group._objects.length > 1) {
         // 建立多选时给多选对象添加改变事件
         group.on("modified", function () {
             for(let ele of canvas.getActiveObjects()) {
@@ -307,6 +314,7 @@ function initWebSocket() {
     };
     // 给服务端发送信息
     ws.sendMessage = function (action, value) {
+        console.log(action)
         ws.send(JSON.stringify({
             "Action": action,
             "Value": value,
@@ -383,6 +391,8 @@ function downloadFileFromBlob(blob, fileName) {
 function randId() {
     return Math.floor(Math.random() * 100000000)
 }
+// fabric.js自带的toJSON会丢失cache信息导致不同步,所以这里
+// 手动把所有数据拿出来存入一个map
 function objToMap(obj) {
     let entries = Object.entries(obj);
     let map = {};
