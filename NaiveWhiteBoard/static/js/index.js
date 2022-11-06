@@ -21,53 +21,6 @@ let clipboard = new ClipboardJS('#share', {
         return window.location.href;
     }
 });
-// 合并
-$("#group").click(function () {
-    if(!canvas.getActiveObject() || canvas.getActiveObject().type !== 'activeSelection') {
-        return;
-    }
-    // 通知服务端删除被合体的元素
-    for(let element of canvas.getActiveObjects()) {
-        ws.sendMessage("removeElement", element.id);
-    }
-    // Group操作实际上是将三个element合为一个新的element,所以需要重新给id和modify事件
-    let group = canvas.getActiveObject().toGroup();
-    group.id = randId();
-    group.on("modified", function () {
-        // 通知服务端修改元素
-        ws.sendMessage("modifyElement", group);
-    });
-    // 通知服务端添加合体元素
-    ws.sendMessage("modifyElement", group);
-    canvas.requestRenderAll();
-});
-// 分离
-$("#ungroup").click(function () {
-    if(!canvas.getActiveObject() || canvas.getActiveObject().type !== 'group') {
-        return;
-    }
-    let group = canvas.getActiveObject();
-    // 通知服务端删除selection
-    ws.sendMessage("removeElement", group.id)
-    let objs = group.toActiveSelection()._objects;
-    // 设置多选对象的事件监听
-    onSelectionCreated();
-    canvas.requestRenderAll();
-    for(let ele of objs) {
-        ele.on("modified", function () {
-            // 通知服务端修改元素
-            ws.sendMessage("modifyElement", ele);
-        });
-        // 通知服务端添加分离出来的元素
-        ws.sendMessage("modifyElement", objToMap(ele))
-    }
-    // setTimeout(function () {
-    //     for(let ele of canvas.getActiveObjects()) {
-    //         // 通知服务端添加分离出来的元素
-    //         ws.sendMessage("modifyElement", objToMap(ele))
-    //     }
-    // }, 1000)
-});
 // 画布自适应窗口大小
 window.onresize = function () {
     canvas.setDimensions({
@@ -96,7 +49,7 @@ document.body.oncontextmenu = function(){
 canvas.on('selection:created', onSelectionCreated);
 function onSelectionCreated() {
     let group = canvas.getActiveObject();
-    if(group != null && group.type !== "group" && group._objects != null && group._objects.length > 1) {
+    if(group != null && group._objects != null && group._objects.length > 1) {
         // 建立多选时给多选对象添加改变事件
         group.on("modified", function () {
             for(let ele of canvas.getActiveObjects()) {
@@ -116,7 +69,7 @@ canvas.on('mouse:down:before', function(opt) {
     }
 });
 canvas.on('mouse:move', function(opt) {
-    if (this.isDragging) {
+    if(this.isDragging) {
         let e = opt.e;
         let vpt = this.viewportTransform;
         vpt[4] += e.clientX - this.lastPosX;
@@ -188,10 +141,7 @@ canvas.addElement = function (type) {
         "originY": "center",
     });
     // 更改事件
-    ele.on("modified", function () {
-        // 通知服务端修改元素
-        ws.sendMessage("modifyElement", ele);
-    });
+    setModifyEvent(ele, false);
     // 通知服务端添加元素
     ws.sendMessage("modifyElement", ele);
     canvas.add(ele);
@@ -219,10 +169,7 @@ canvas.drawElement = function (element) {
             canvas.remove(canvas.getElementById(ele.id));
         }
         // 更改事件
-        ele.on("modified", function () {
-            // 通知服务端修改元素
-            ws.sendMessage("modifyElement", ele);
-        });
+        setModifyEvent(ele, false);
         if(ele.matrixCache != null) {
             ele.left = ele.matrixCache.value[4]
             ele.top = ele.matrixCache.value[5]
@@ -403,4 +350,17 @@ function objToMap(obj) {
     }
     map["type"] = obj.get("type")
     return map
+}
+function setModifyEvent(obj, toMap) {
+    if(obj.__eventListeners != null) {
+        obj.__eventListeners["modified"] = null
+    }
+    obj.on("modified", function () {
+        // 通知服务端修改元素
+        if(toMap) {
+            ws.sendMessage("modifyElement", objToMap(obj));
+        } else {
+            ws.sendMessage("modifyElement", obj);
+        }
+    });
 }
