@@ -7,7 +7,8 @@ import (
 // WhiteBoard 白板
 type WhiteBoard struct {
 	Name    string          // 白板名称
-	Creator string          // 创建者
+	Creator *User           // 创建者
+	Lock    bool            // 锁定
 	Pages   []Page          // 白板所有页面的内容
 	Users   map[string]bool // 所有已加入该白板的用户
 }
@@ -64,10 +65,10 @@ func (board *WhiteBoard) readConfigFromJson(pageJson interface{}, page int) {
 	// 清空页面内容
 	board.Pages[page] = make(map[int]Element)
 	// 遍历所有的element,逐个转换类型
-	for id, element := range pageJson.(map[string]interface{}) {
+	for sid, element := range pageJson.(map[string]interface{}) {
 		// 实际类型是map[int]interface{} 但是自动转为了string,这里把id转回来
-		rid, _ := strconv.Atoi(id)
-		board.Pages[page][rid] = element.(Element)
+		id, _ := strconv.Atoi(sid)
+		board.Pages[page][id] = element.(Element)
 	}
 	msg := &Message{
 		Action: "modifyPage",
@@ -75,4 +76,16 @@ func (board *WhiteBoard) readConfigFromJson(pageJson interface{}, page int) {
 	}
 	// 通知所有用户刷新页面
 	board.sendMessageToAll(msg, page, "")
+}
+
+// 修改锁定模式
+func (board *WhiteBoard) setLock(lock bool) {
+	board.Lock = lock
+	msg := &Message{
+		Action:  "lockBoard",
+		Value:   lock,
+		Success: true,
+	}
+	// 通知所有用户锁定/解锁白板
+	board.sendMessageToAll(msg, -1, "")
 }

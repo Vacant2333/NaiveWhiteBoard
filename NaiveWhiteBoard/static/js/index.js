@@ -5,6 +5,7 @@ let canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
     height: window.innerHeight,
     backgroundColor: "#f2f2f2",
+    stopContextMenu: true, // 屏蔽右键
 });
 fabric.Object.prototype.transparentCorners = false;
 fabric.Object.prototype.cornerColor = '#B2CCFF';
@@ -41,10 +42,6 @@ canvas.on('mouse:wheel', function (opt){
     opt.e.preventDefault();
     opt.e.stopPropagation();
 });
-// 阻止右键菜单
-document.body.oncontextmenu = function(){
-    return false;
-};
 // 建立多选时状态改变时同步
 canvas.on('selection:created', onSelectionCreated);
 function onSelectionCreated() {
@@ -177,6 +174,22 @@ canvas.drawElement = function (element) {
         canvas.add(ele);
     });
 }
+// 设置锁定
+canvas.setLock = function (lock) {
+    for(let ele of canvas.getObjects()) {
+        ele.selectable = !lock
+    }
+    if(lock) {
+        $("#lock").text("lock");
+        tip("白板已锁定")
+        // 清空已选内容
+        canvas._activeObject = null;
+        canvas.requestRenderAll();
+    } else {
+        $("#lock").text("lock_open");
+        tip("白板已解锁")
+    }
+}
 // 下载当前页面配置
 $("#downloadPage").click(function () {
     ws.sendMessage("downloadPage");
@@ -193,8 +206,13 @@ $("#uploadForm").change(function (e) {
     // 清空表单
     e.target.value = "";
 });
+// 设定锁定模式
+$("#lock").click(function () {
+    // 如果目前是Lock状态,value就是False,也就是解锁,如果不是,就是锁定
+    ws.sendMessage("lockBoard", $("#lock").text() !== "lock")
+});
 
-/* WebSocket */
+/* WebSocket对象 */
 let ws;
 initWebSocket();
 // 初始化WebSocket,放在function中才能实现重连
@@ -208,7 +226,7 @@ function initWebSocket() {
         tip("服务器连接失败,请稍后重试~");
         setLoginFormDisplay(true, false);
         // 定时重连
-        setTimeout(initWebSocket, 2500);
+        setTimeout(initWebSocket, 2000);
     };
     // 接受来自服务端的信息
     ws.onmessage = function(e) {
@@ -254,14 +272,25 @@ function initWebSocket() {
                 break;
             case "downloadPage":
                 // 下载当前页面的配置
-                let blob = new Blob([JSON.stringify(reply["Value"])]);
-                downloadFileFromBlob(blob, "page.json");
+                downloadFileFromBlob(reply["Value"], "page.json");
                 break;
+            case "uploadPage":
+                // 上传失败,如果成功不会发送这个msg,会发送modifyPage
+                if(!reply["Success"]) {
+                    tip("上传失败,白板已锁定")
+                }
+            case "lockBoard":
+                // 锁定白板
+                if(!reply["Success"]) {
+                    // 操作锁定失败,不是创建者
+                    tip("创建者才能设置锁定状态");
+                } else {
+                    canvas.setLock(reply["Value"])
+                }
         }
     };
     // 给服务端发送信息
     ws.sendMessage = function (action, value) {
-        console.log(action)
         ws.send(JSON.stringify({
             "Action": action,
             "Value": value,
@@ -291,7 +320,7 @@ function joinWhiteBoard() {
 // 推送底部提示
 function tip(s) {
     document.querySelector("#toastBar").MaterialSnackbar.showSnackbar({
-        message: s
+        message: s,
     });
 }
 // 通过白板名称设置URL
@@ -321,17 +350,17 @@ function setLoginFormDisplay(mask, join) {
         $(".join").hide();
     }
 }
-// 从Blob下载文件
-function downloadFileFromBlob(blob, fileName) {
-    let blobUrl = window.URL.createObjectURL(blob)
-    let link = document.createElement('a')
+// 下载文件
+function downloadFileFromBlob(data, fileName) {
+    let blobUrl = window.URL.createObjectURL(new Blob([JSON.stringify(data)]))
+    let link = document.createElement("a")
     link.download = fileName
-    link.style.display = 'none'
+    link.style.display = "none"
     link.href = blobUrl
     // 触发点击
     document.body.appendChild(link)
     link.click()
-    // 移除
+    // 移除临时元素
     document.body.removeChild(link)
 }
 // 生成随机ID
@@ -351,6 +380,7 @@ function objToMap(obj) {
     map["type"] = obj.get("type")
     return map
 }
+// 设置element的modify事件
 function setModifyEvent(obj, toMap) {
     if(obj.__eventListeners != null) {
         obj.__eventListeners["modified"] = null

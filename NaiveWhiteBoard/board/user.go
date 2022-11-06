@@ -14,7 +14,7 @@ var Users map[string]*User
 type User struct {
 	Name      string          // 用户名(addr)
 	WebSocket *websocket.Conn // WebSocket连接
-	Board     string          // 用户所属的白板名称
+	Board     *WhiteBoard     // 用户所属的白板名称
 	Page      int             // 用户所在的白板下标
 }
 
@@ -40,7 +40,7 @@ func (user *User) receiveMessage() {
 	defer func() {
 		if err := recover(); err != nil {
 			// 错误恢复,打印调用栈
-			fmt.Println("err=", err)
+			fmt.Println("error =", err)
 			debug.PrintStack()
 		}
 	}()
@@ -68,7 +68,7 @@ func (user *User) receiveMessage() {
 				// 白板不存在,创建白板
 				Boards[boardName] = &WhiteBoard{
 					Name:    boardName,
-					Creator: user.Name,
+					Creator: user,
 					Pages:   make([]Page, 1),
 					Users:   map[string]bool{},
 				}
@@ -96,12 +96,18 @@ func (user *User) receiveMessage() {
 			}
 		case "modifyElement":
 			// 添加/修改元素
-			element := msg.Value.(Element)
-			// 在用户对应的白板和页面中操作该元素
-			Boards[user.Board].modifyElement(element, user.Page, user.Name)
+			if !user.Board.Lock {
+				// 没有锁定才能操作元素
+				element := msg.Value.(Element)
+				// 在用户对应的白板和页面中操作该元素
+				user.Board.modifyElement(element, user.Page, user.Name)
+			}
 		case "removeElement":
 			// 删除元素
-			Boards[user.Board].removeElement(int(msg.Value.(float64)), user.Page, user.Name)
+			if !user.Board.Lock {
+				// 没有锁定才能操作元素
+				user.Board.removeElement(int(msg.Value.(float64)), user.Page, user.Name)
+			}
 		case "downloadPage":
 			// 下载当前页面的配置
 			reply = &Message{
@@ -110,7 +116,27 @@ func (user *User) receiveMessage() {
 			}
 		case "uploadPage":
 			// 上传页面配置
-			Boards[user.Board].readConfigFromJson(msg.Value, user.Page)
+			if user.Board.Lock {
+				// 白板已锁定,上传失败
+				reply = &Message{
+					Action:  "uploadPage",
+					Success: false,
+				}
+			} else {
+				user.Board.readConfigFromJson(msg.Value, user.Page)
+			}
+		case "lockBoard":
+			// 设置锁定模式,只有创建者可以Lock
+			if user == user.Board.Creator {
+				// 用户是创建者,执行指令
+				user.Board.setLock(msg.Value.(bool))
+			} else {
+				// 用户不是创建者
+				reply = &Message{
+					Action:  "lockBoard",
+					Success: false,
+				}
+			}
 		}
 		if reply != nil {
 			// 回复用户
@@ -144,14 +170,14 @@ func (user *User) joinWhiteBoard(boardName string) bool {
 	// 把该用户存入到白板中
 	Boards[boardName].Users[user.Name] = true
 	// 设置用户所属白板
-	user.Board = boardName
+	user.Board = Boards[boardName]
 	return true
 }
 
 // 获得用户所在Page的所有元素
 func (user *User) getPageElements() Page {
-	if user.Board != "" {
-		return Boards[user.Board].Pages[user.Page]
+	if user.Board != nil {
+		return user.Board.Pages[user.Page]
 	}
 	return nil
 }
@@ -161,8 +187,8 @@ func (user *User) delete() {
 	if _, hasUser := Users[user.Name]; hasUser {
 		delete(Users, user.Name)
 		// 用户可能还没加入某个白板就断开连接
-		if user.Board != "" {
-			delete(Boards[user.Board].Users, user.Name)
+		if user.Board != nil {
+			delete(user.Board.Users, user.Name)
 		}
 	}
 }
