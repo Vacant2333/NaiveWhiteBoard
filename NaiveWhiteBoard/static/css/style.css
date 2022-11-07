@@ -44,6 +44,11 @@ html {
     border-radius: 6px;
 }
 
+.controls.right {
+    width: auto;
+    height: 40px;
+}
+
 span.tool {
     cursor: pointer;
     margin: 7px;

@@ -227,6 +227,20 @@ $("#uploadPage").click(function () {
         $('#uploadForm').click()
     }
 });
+// 全屏/取消全屏
+$("#fullscreen").click(function () {
+    if(document.fullscreenElement == null) {
+        // 为null,不是全屏状态,请求全屏
+        document.documentElement.requestFullscreen().then(function () {
+            $("#fullscreen").text("fullscreen_exit");
+        });
+    } else {
+        // 不为null,请求退出全屏
+        document.exitFullscreen().then(function () {
+            $("#fullscreen").text("fullscreen");
+        });
+    }
+});
 // 设定锁定模式
 $("#lock").click(function () {
     // 如果目前是Lock状态,value就是False,也就是解锁,如果不是,就是锁定
