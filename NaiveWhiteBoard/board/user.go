@@ -15,7 +15,7 @@ type User struct {
 	Name      string          // 用户名(addr)
 	WebSocket *websocket.Conn // WebSocket连接
 	Board     *WhiteBoard     // 用户所属的白板名称
-	Page      int             // 用户所在的白板下标
+	Page      string          // 用户所在的白板下标
 }
 
 // Message WebSocket信息格式
@@ -69,11 +69,11 @@ func (user *User) receiveMessage() {
 				Boards[boardName] = &WhiteBoard{
 					Name:    boardName,
 					Creator: user,
-					Pages:   make([]Page, 1),
+					Pages:   map[string]Page{},
 					Users:   map[string]bool{},
 				}
 				// 初始化默认页面(第一页)
-				Boards[boardName].Pages[0] = make(map[int]Element)
+				Boards[boardName].Pages[defaultPage] = make(map[int]Element)
 				user.joinWhiteBoard(boardName)
 				success = true
 			}
@@ -91,8 +91,6 @@ func (user *User) receiveMessage() {
 				Success: user.joinWhiteBoard(boardName),
 			}
 			if reply.Success {
-				// 加入成功后立即更新用户的页面内容
-				user.modifyPage()
 				if user.Board.Lock {
 					// 如果白板已锁定,通知用户
 					user.sendMessage(&Message{
@@ -119,8 +117,9 @@ func (user *User) receiveMessage() {
 		case "downloadPage":
 			// 下载当前页面的配置
 			reply = &Message{
-				Action: "downloadPage",
-				Value:  user.getPageElements(),
+				Action:  "downloadPage",
+				Value:   user.getPageElements(),
+				Success: true,
 			}
 		case "uploadPage":
 			// 上传页面配置
@@ -139,6 +138,22 @@ func (user *User) receiveMessage() {
 					Action:  "lockBoard",
 					Success: false,
 				}
+			}
+		case "addPage":
+			// 添加页面,如果失败则可能是Lock或重名
+			pageName := msg.Value.(string)
+			reply = &Message{
+				Action:  "addPage",
+				Value:   pageName,
+				Success: !user.Board.Lock && user.Board.addPage(pageName, user.Name),
+			}
+		case "setPage":
+			// 用户请求切换页面
+			user.setPage(msg.Value.(string))
+		case "removePage":
+			// 用户请求删除页面
+			if user.Board.Lock {
+				// 白板已锁定
 			}
 		}
 		if reply != nil {
@@ -160,7 +175,7 @@ func (user *User) sendMessage(msg *Message) {
 	content, _ := json.Marshal(msg)
 	err := user.WebSocket.WriteMessage(websocket.TextMessage, content)
 	if err != nil {
-		fmt.Printf("reply to User fail! reply:[%v] User[%v]", msg, user)
+		fmt.Printf("reply[%v] to user[%v] fail!", msg, user)
 	}
 }
 
@@ -172,8 +187,11 @@ func (user *User) joinWhiteBoard(boardName string) bool {
 	}
 	// 把该用户存入到白板中
 	Boards[boardName].Users[user.Name] = true
-	// 设置用户所属白板
+	// 设置用户所属白板,默认页面
 	user.Board = Boards[boardName]
+	// 发送所有的页面和设置当前页面
+	user.sendAllPage()
+	user.setPage(defaultPage)
 	return true
 }
 
@@ -199,7 +217,35 @@ func (user *User) delete() {
 // 更新用户页面所有内容
 func (user *User) modifyPage() {
 	user.sendMessage(&Message{
-		Action: "modifyPage",
-		Value:  user.getPageElements(),
+		Action:  "modifyPage",
+		Value:   user.getPageElements(),
+		Success: true,
 	})
+}
+
+// 设置用户当前页面
+func (user *User) setPage(pageName string) {
+	user.Page = pageName
+	// 发送设置当前页面和当前页面内容的Msg
+	user.sendMessage(&Message{
+		Action:  "setPage",
+		Value:   pageName,
+		Success: true,
+	})
+	user.sendMessage(&Message{
+		Action:  "modifyPage",
+		Value:   user.getPageElements(),
+		Success: true,
+	})
+}
+
+// 发送所有已存在的页面
+func (user *User) sendAllPage() {
+	for pageName, _ := range user.Board.Pages {
+		user.sendMessage(&Message{
+			Action:  "addPage",
+			Value:   pageName,
+			Success: true,
+		})
+	}
 }

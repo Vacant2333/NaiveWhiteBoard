@@ -9,9 +9,12 @@ type WhiteBoard struct {
 	Name    string          // 白板名称
 	Creator *User           // 创建者
 	Lock    bool            // 锁定
-	Pages   []Page          // 白板所有页面的内容
+	Pages   map[string]Page // 白板所有页面的内容
 	Users   map[string]bool // 所有已加入该白板的用户
 }
+
+// 默认页面不可被删除,默认加入时进入该页面
+const defaultPage = "默认页面"
 
 // Page 页面内容
 type Page = map[int]Element
@@ -29,37 +32,39 @@ func init() {
 }
 
 // 给该Board的所有用户发送信息
-func (board *WhiteBoard) sendMessageToAll(msg *Message, page int, expectUser string) {
+func (board *WhiteBoard) sendMessageToAll(msg *Message, page string, expectUser string) {
 	for name := range board.Users {
-		// page为-1则不限页面
-		if (Users[name].Page == page || page == -1) && name != expectUser {
+		// page为""则为全局信息
+		if (Users[name].Page == page || page == "") && name != expectUser {
 			Users[name].sendMessage(msg)
 		}
 	}
 }
 
 // 添加元素,并且通知所有的用户
-func (board *WhiteBoard) modifyElement(element Element, page int, actionUser string) {
+func (board *WhiteBoard) modifyElement(element Element, page string, actionUser string) {
 	elementId := int(element["id"].(float64))
 	board.Pages[page][elementId] = element
 	board.sendMessageToAll(&Message{
-		Action: "modifyElement",
-		Value:  element,
+		Action:  "modifyElement",
+		Value:   element,
+		Success: true,
 	}, page, actionUser)
 }
 
 // 删除元素,并且通知所有用户
-func (board *WhiteBoard) removeElement(elementID int, page int, actionUser string) {
+func (board *WhiteBoard) removeElement(elementID int, page string, actionUser string) {
 	// 删除存在服务端的Element
 	delete(board.Pages[page], elementID)
 	board.sendMessageToAll(&Message{
-		Action: "removeElement",
-		Value:  elementID,
+		Action:  "removeElement",
+		Value:   elementID,
+		Success: true,
 	}, page, actionUser)
 }
 
 // 从配置文件读取内容到页面中,并通知所有用户刷新页面
-func (board *WhiteBoard) readConfigFromJson(pageJson interface{}, page int) {
+func (board *WhiteBoard) readConfigFromJson(pageJson interface{}, page string) {
 	// 清空页面内容
 	board.Pages[page] = make(map[int]Element)
 	// 遍历所有的element,逐个转换类型
@@ -70,8 +75,9 @@ func (board *WhiteBoard) readConfigFromJson(pageJson interface{}, page int) {
 	}
 	// 通知所有用户刷新页面
 	board.sendMessageToAll(&Message{
-		Action: "modifyPage",
-		Value:  board.Pages[page],
+		Action:  "modifyPage",
+		Value:   board.Pages[page],
+		Success: true,
 	}, page, "")
 }
 
@@ -83,5 +89,21 @@ func (board *WhiteBoard) setLock(lock bool) {
 		Action:  "lockBoard",
 		Value:   lock,
 		Success: true,
-	}, -1, "")
+	}, "", "")
+}
+
+// 添加页面
+func (board *WhiteBoard) addPage(pageName string, userName string) bool {
+	if _, ok := board.Pages[pageName]; ok {
+		// 页面已存在
+		return false
+	}
+	board.Pages[pageName] = map[int]Element{}
+	// 通知所有用户添加页面
+	board.sendMessageToAll(&Message{
+		Action:  "addPage",
+		Value:   pageName,
+		Success: true,
+	}, "", userName)
+	return true
 }

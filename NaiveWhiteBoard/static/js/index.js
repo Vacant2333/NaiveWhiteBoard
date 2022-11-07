@@ -1,5 +1,7 @@
 // 从URL读白板名到输入框内
 setBoardNameValue();
+// 清空顶部Page栏
+clearPages();
 // 初始化画布
 let canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
@@ -246,6 +248,11 @@ $("#lock").click(function () {
     // 如果目前是Lock状态,value就是False,也就是解锁,如果不是,就是锁定
     ws.sendMessage("lockBoard", $("#lock").text() !== "lock")
 });
+// 添加新页面
+$("#add_page").click(function () {
+    // todo:page name
+    ws.sendMessage("addPage", randId().toString());
+});
 
 /* WebSocket对象 */
 let ws;
@@ -311,12 +318,26 @@ function initWebSocket() {
                 break;
             case "lockBoard":
                 // 锁定白板
-                if(!reply["Success"]) {
+                if(reply["Success"]) {
+                    canvas.setLock(reply["Value"]);
+                } else {
                     // 操作锁定失败,不是创建者
                     tip("创建者才能设置锁定状态");
-                } else {
-                    canvas.setLock(reply["Value"]);
                 }
+                break;
+            case "addPage":
+                // 添加页面
+                if(!reply["Success"]) {
+                    // 添加失败
+                    tip("白板已锁定或名称已存在");
+                } else {
+                    // 添加成功
+                    addPage(reply["Value"]);
+                }
+                break;
+            case "setPage":
+                // 服务端要求切换页面(服务端发送setPage时会带上modifyPage)
+                setActivePage(reply["Value"]);
                 break;
         }
     };
@@ -424,4 +445,35 @@ function setModifyEvent(obj, toMap) {
             ws.sendMessage("modifyElement", obj);
         }
     });
+}
+// 添加页面按钮
+function addPage(name) {
+    // name作为page的id和page-name的text
+    let pageHtml = "<div class='page' id='"+name+"'>" +
+        "              <span class='page-name'>"+name+"</span>" +
+        "              <span class='page-close material-symbols-outlined'>close</span>" +
+        "           </div>";
+    // 添加到 添加页面按钮 之前
+    $("#add_page").before(pageHtml);
+    // 点击时切换页面
+    $("#"+name).click(function (e) {
+        let div = e.currentTarget;
+        ws.sendMessage("setPage", div.id.toString());
+    });
+}
+// 设置当前页面
+function setActivePage(name) {
+    // 设置顶部标签
+    for(let pageEle of $(".page")) {
+        pageEle.classList.remove("page-select");
+        if(pageEle.id === name) {
+            pageEle.classList.add("page-select");
+        }
+    }
+}
+// 清空顶部Page栏
+function clearPages() {
+    for(let pageEle of $(".page")) {
+        pageEle.remove();
+    }
 }

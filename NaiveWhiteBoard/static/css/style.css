@@ -3,13 +3,12 @@ body {
     height: 100%;
     margin: 0;
 }
-
 html {
     width: 100%;
     height: 100%;
     overflow: hidden;
 }
-
+/* 欢迎界面 */
 .join {
     width: 60%;
     height: 60%;
@@ -18,12 +17,12 @@ html {
     margin: 10% 20% 30% 20%;
     display: none;
 }
-
+/* 欢迎界面图片 */
 .title {
     height: 73%;
     background: url("/static/img/welcome.jpeg") center / cover;
 }
-
+/* 屏蔽层 */
 .mask {
     position: absolute;
     top: 0;
@@ -33,7 +32,7 @@ html {
     background-color: #b2ebf2;
     z-index: 15;
 }
-
+/* 控制区 */
 .controls {
     width: 40px;
     left: 5px;
@@ -43,7 +42,7 @@ html {
     background-color: white;
     border-radius: 6px;
 }
-
+/* 页面区 */
 .controls.top {
     width: 100%;
     left: 0;
@@ -51,7 +50,7 @@ html {
     border-radius: 0;
     background-color: #eeeeee;
 }
-
+/* 页面div */
 .page {
     height: 30px;
     width: 150px;
@@ -59,7 +58,7 @@ html {
     display: inline-block;
     border-right: 1px solid #9e9e9e;
 }
-
+/* 页面名称 */
 .page-name {
     text-overflow: clip;
     overflow: hidden;
@@ -70,8 +69,13 @@ html {
     line-height: 30px;
     padding-left: 10px;
     text-align: left;
+    cursor: pointer;
 }
-
+/* 已选中的Page */
+.page-select {
+    background-color: #bdbdbd !important;
+}
+/* 关闭页面按钮 */
 span.page-close {
     font-size: 18px;
     font-weight: 600;
@@ -80,7 +84,7 @@ span.page-close {
     margin: 0 5px 0 5px;
     cursor: pointer;
 }
-
+/* 添加页面按钮 */
 span.page-add {
     font-size: 22px;
     line-height: 30px;
@@ -88,30 +92,28 @@ span.page-add {
     margin: 0 6px 0 6px;
     cursor: pointer;
 }
-
+/* 功能按钮 */
 span.tool {
     cursor: pointer;
     margin: 7px;
     font-size: 26px;
 }
-
+/* 白板 */
 .board {
     width: 100%;
     height: 100%;
 }
-
+/* 推送区 */
 #toastBar {
     z-index: 20;
 }
-
-/* google icon */
+/* Google Material Icon */
 @font-face {
     font-family: 'Material Symbols Outlined';
     font-style: normal;
     font-weight: 500;
     src: url("/static/woff/material_outline.woff2") format('woff2');
 }
-
 .material-symbols-outlined {
     font-family: 'Material Symbols Outlined', serif;
     font-weight: normal;
