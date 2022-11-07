@@ -49,6 +49,44 @@ html {
     left: 0;
     height: 30px;
     border-radius: 0;
+    background-color: #eeeeee;
+}
+
+.page {
+    height: 30px;
+    width: 150px;
+    background-color: #eeeeee;
+    display: inline-block;
+    border-right: 1px solid #9e9e9e;
+}
+
+.page-name {
+    text-overflow: clip;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 108px;
+    height: 30px;
+    display: inline-block;
+    line-height: 30px;
+    padding-left: 10px;
+    text-align: left;
+}
+
+span.page-close {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 30px;
+    position: absolute;
+    margin: 0 5px 0 5px;
+    cursor: pointer;
+}
+
+span.page-add {
+    font-size: 22px;
+    line-height: 30px;
+    position: absolute;
+    margin: 0 6px 0 6px;
+    cursor: pointer;
 }
 
 span.tool {
