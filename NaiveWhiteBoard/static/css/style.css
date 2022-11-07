@@ -36,7 +36,7 @@ html {
 
 .controls {
     width: 40px;
-    left: 10px;
+    left: 5px;
     z-index: 10;
     position: absolute;
     display: inline-block;
@@ -44,9 +44,11 @@ html {
     border-radius: 6px;
 }
 
-.controls.right {
-    width: auto;
-    height: 40px;
+.controls.top {
+    width: 100%;
+    left: 0;
+    height: 30px;
+    border-radius: 0;
 }
 
 span.tool {
