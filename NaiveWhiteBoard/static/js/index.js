@@ -162,6 +162,8 @@ canvas.resetCanvas = function (data) {
             canvas.drawElement(element)
         });
     }
+    // 设置已锁定
+    canvas.setLock(canvas.isLock());
 };
 // 根据服务器传来的数据来添加/修改元素
 canvas.drawElement = function (element) {
@@ -196,7 +198,9 @@ canvas.setLock = function (lock) {
         $("#lock").text("lock_open");
         tip("白板已解锁")
         // 读取已选内容
-        canvas.setActiveObject(canvas.activeTemp)
+        if(canvas.activeTemp !== null) {
+            canvas.setActiveObject(canvas.activeTemp)
+        }
     }
     canvas.requestRenderAll();
 }
@@ -470,6 +474,7 @@ function setActivePage(name) {
             pageEle.classList.add("page-select");
         }
     }
+    // 不能在这里设置锁定状态,页面数据还没到
 }
 // 清空顶部Page栏
 function clearPages() {
