@@ -181,18 +181,22 @@ canvas.drawElement = function (element) {
 // 设置锁定
 canvas.setLock = function (lock) {
     for(let ele of canvas.getObjects()) {
+        // 根据锁定设置是否可选中
         ele.selectable = !lock
     }
     if(lock) {
         $("#lock").text("lock");
         tip("白板已锁定")
-        // 清空已选内容
+        // 保存已选内容的数据后清空
+        canvas.activeTemp = canvas._activeObject
         canvas._activeObject = null;
-        canvas.requestRenderAll();
     } else {
         $("#lock").text("lock_open");
         tip("白板已解锁")
+        // 读取已选内容
+        canvas.setActiveObject(canvas.activeTemp)
     }
+    canvas.requestRenderAll();
 }
 // 是否已锁
 canvas.isLock = function () {

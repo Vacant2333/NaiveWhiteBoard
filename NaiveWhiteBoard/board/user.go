@@ -87,12 +87,20 @@ func (user *User) receiveMessage() {
 			boardName := msg.Value.(string)
 			reply = &Message{
 				Action:  "joinWhiteBoard",
-				Success: user.joinWhiteBoard(boardName),
 				Value:   boardName,
+				Success: user.joinWhiteBoard(boardName),
 			}
 			if reply.Success {
-				// 加入成功后立即更新页面内容
+				// 加入成功后立即更新用户的页面内容
 				user.modifyPage()
+				if user.Board.Lock {
+					// 如果白板已锁定,通知用户
+					user.sendMessage(&Message{
+						Action:  "lockBoard",
+						Value:   true,
+						Success: true,
+					})
+				}
 			}
 		case "modifyElement":
 			// 添加/修改元素

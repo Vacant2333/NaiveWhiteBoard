@@ -42,22 +42,20 @@ func (board *WhiteBoard) sendMessageToAll(msg *Message, page int, expectUser str
 func (board *WhiteBoard) modifyElement(element Element, page int, actionUser string) {
 	elementId := int(element["id"].(float64))
 	board.Pages[page][elementId] = element
-	msg := &Message{
+	board.sendMessageToAll(&Message{
 		Action: "modifyElement",
 		Value:  element,
-	}
-	board.sendMessageToAll(msg, page, actionUser)
+	}, page, actionUser)
 }
 
 // 删除元素,并且通知所有用户
 func (board *WhiteBoard) removeElement(elementID int, page int, actionUser string) {
-	msg := &Message{
-		Action: "removeElement",
-		Value:  elementID,
-	}
 	// 删除存在服务端的Element
 	delete(board.Pages[page], elementID)
-	board.sendMessageToAll(msg, page, actionUser)
+	board.sendMessageToAll(&Message{
+		Action: "removeElement",
+		Value:  elementID,
+	}, page, actionUser)
 }
 
 // 从配置文件读取内容到页面中,并通知所有用户刷新页面
@@ -70,22 +68,20 @@ func (board *WhiteBoard) readConfigFromJson(pageJson interface{}, page int) {
 		id, _ := strconv.Atoi(sid)
 		board.Pages[page][id] = element.(Element)
 	}
-	msg := &Message{
+	// 通知所有用户刷新页面
+	board.sendMessageToAll(&Message{
 		Action: "modifyPage",
 		Value:  board.Pages[page],
-	}
-	// 通知所有用户刷新页面
-	board.sendMessageToAll(msg, page, "")
+	}, page, "")
 }
 
 // 修改锁定模式
 func (board *WhiteBoard) setLock(lock bool) {
 	board.Lock = lock
-	msg := &Message{
+	// 通知所有用户锁定/解锁白板
+	board.sendMessageToAll(&Message{
 		Action:  "lockBoard",
 		Value:   lock,
 		Success: true,
-	}
-	// 通知所有用户锁定/解锁白板
-	board.sendMessageToAll(msg, -1, "")
+	}, -1, "")
 }
