@@ -107,3 +107,13 @@ func (board *WhiteBoard) addPage(pageName string, userName string) bool {
 	}, "", userName)
 	return true
 }
+
+// 删除页面
+func (board *WhiteBoard) removePage(name string) {
+	delete(board.Pages, name)
+	board.sendMessageToAll(&Message{
+		Action:  "removePage",
+		Value:   name,
+		Success: true,
+	}, "", "")
+}

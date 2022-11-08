@@ -152,8 +152,15 @@ func (user *User) receiveMessage() {
 			user.setPage(msg.Value.(string))
 		case "removePage":
 			// 用户请求删除页面
-			if user.Board.Lock {
+			pageName := msg.Value.(string)
+			if user.Board.Lock || pageName == defaultPage {
 				// 白板已锁定
+				reply = &Message{
+					Action:  "removePage",
+					Success: false,
+				}
+			} else {
+				user.Board.removePage(pageName)
 			}
 		}
 		if reply != nil {
@@ -239,9 +246,9 @@ func (user *User) setPage(pageName string) {
 	})
 }
 
-// 发送所有已存在的页面
+// 发送所有已存在的页面(页面名称)
 func (user *User) sendAllPage() {
-	for pageName, _ := range user.Board.Pages {
+	for pageName := range user.Board.Pages {
 		user.sendMessage(&Message{
 			Action:  "addPage",
 			Value:   pageName,

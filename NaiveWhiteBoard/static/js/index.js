@@ -1,3 +1,4 @@
+const defaultPage = "默认页面";
 // 从URL读白板名到输入框内
 setBoardNameValue();
 // 清空顶部Page栏
@@ -163,7 +164,7 @@ canvas.resetCanvas = function (data) {
         });
     }
     // 设置已锁定
-    canvas.setLock(canvas.isLock());
+    canvas.setLock(canvas.isLock(), false);
 };
 // 根据服务器传来的数据来添加/修改元素
 canvas.drawElement = function (element) {
@@ -183,23 +184,27 @@ canvas.drawElement = function (element) {
     });
 }
 // 设置锁定
-canvas.setLock = function (lock) {
+canvas.setLock = function (lock, sendTip) {
     for(let ele of canvas.getObjects()) {
         // 根据锁定设置是否可选中
         ele.selectable = !lock
     }
     if(lock) {
         $("#lock").text("lock");
-        tip("白板已锁定")
+        if(sendTip) {
+            tip("白板已锁定");
+        }
         // 保存已选内容的数据后清空
-        canvas.activeTemp = canvas._activeObject
+        canvas.activeTemp = canvas._activeObject;
         canvas._activeObject = null;
     } else {
         $("#lock").text("lock_open");
-        tip("白板已解锁")
+        if(sendTip) {
+            tip("白板已解锁");
+        }
         // 读取已选内容
         if(canvas.activeTemp !== null) {
-            canvas.setActiveObject(canvas.activeTemp)
+            canvas.setActiveObject(canvas.activeTemp);
         }
     }
     canvas.requestRenderAll();
@@ -323,7 +328,7 @@ function initWebSocket() {
             case "lockBoard":
                 // 锁定白板
                 if(reply["Success"]) {
-                    canvas.setLock(reply["Value"]);
+                    canvas.setLock(reply["Value"], true);
                 } else {
                     // 操作锁定失败,不是创建者
                     tip("创建者才能设置锁定状态");
@@ -331,18 +336,24 @@ function initWebSocket() {
                 break;
             case "addPage":
                 // 添加页面
-                if(!reply["Success"]) {
-                    // 添加失败
-                    tip("白板已锁定或名称已存在");
-                } else {
+                if(reply["Success"]) {
                     // 添加成功
                     addPage(reply["Value"]);
+                } else {
+                    tip("白板已锁定或名称已存在");
                 }
                 break;
             case "setPage":
                 // 服务端要求切换页面(服务端发送setPage时会带上modifyPage)
                 setActivePage(reply["Value"]);
                 break;
+            case "removePage":
+                // 删除页面
+                if(reply["Success"]) {
+                    removePage(reply["Value"]);
+                } else {
+                    tip("删除失败,白板已锁定或尝试删除默认页面");
+                }
         }
     };
     // 给服务端发送信息
@@ -457,13 +468,17 @@ function addPage(name) {
         "              <span class='page-name'>"+name+"</span>" +
         "              <span class='page-close material-symbols-outlined'>close</span>" +
         "           </div>";
-    // 添加到 添加页面按钮 之前
+    // 添加该元素到 添加页面按钮 之前
     $("#add_page").before(pageHtml);
-    // 点击时切换页面
-    $("#"+name).click(function (e) {
-        let div = e.currentTarget;
-        ws.sendMessage("setPage", div.id.toString());
-    });
+    let children = $("#"+name).children();
+    // 切换页面
+    children[0].onclick = function () {
+        ws.sendMessage("setPage", name.toString());
+    }
+    // 删除页面
+    children[1].onclick = function () {
+        ws.sendMessage("removePage", name.toString());
+    }
 }
 // 设置当前页面
 function setActivePage(name) {
@@ -480,5 +495,17 @@ function setActivePage(name) {
 function clearPages() {
     for(let pageEle of $(".page")) {
         pageEle.remove();
+    }
+}
+// 删除页面
+function removePage(name) {
+    for(let pageEle of $(".page")) {
+        if(pageEle.id === name) {
+            if(pageEle.classList.contains("page-select")) {
+                // 如果被删除的是当前页面,转为默认页面
+                ws.sendMessage("setPage", defaultPage);
+            }
+            pageEle.remove();
+        }
     }
 }
