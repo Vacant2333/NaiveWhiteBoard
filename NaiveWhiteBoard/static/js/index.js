@@ -270,6 +270,10 @@ document.oncopy = function () {
 }
 // 粘贴
 document.onpaste = function () {
+    if(canvas.isLock()) {
+        tip("白板已锁定");
+        return;
+    }
     _clipboard.clone(function(clonedObj) {
         canvas.discardActiveObject();
         clonedObj.set({
