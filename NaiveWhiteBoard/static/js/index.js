@@ -465,16 +465,18 @@ function addPage(name) {
         "              <span class='page-name'>"+name+"</span>" +
         "              <span class='page-close material-symbols-outlined'>close</span>" +
         "           </div>";
-    // 添加该元素到 添加页面按钮 之前
-    $("#add_page").before(pageHtml);
-    let children = $("#"+name).children();
-    // 切换页面
-    children[0].onclick = function () {
-        ws.sendMessage("setPage", name.toString());
-    }
-    // 删除页面
-    children[1].onclick = function () {
-        ws.sendMessage("removePage", name.toString());
+    if($("#"+name).length === 0) {
+        // 添加该元素到 添加页面按钮 之前
+        $("#add_page").before(pageHtml);
+        let children = $("#"+name).children();
+        // 切换页面
+        children[0].onclick = function () {
+            ws.sendMessage("setPage", name.toString());
+        }
+        // 删除页面
+        children[1].onclick = function () {
+            ws.sendMessage("removePage", name.toString());
+        }
     }
 }
 // 设置当前页面
