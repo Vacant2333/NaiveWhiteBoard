@@ -4,17 +4,17 @@ import (
 	"strconv"
 )
 
-// WhiteBoard 白板
-type WhiteBoard struct {
-	Name    string          // 白板名称
-	Creator *User           // 创建者
-	Lock    bool            // 锁定
-	Pages   map[string]Page // 白板所有页面的内容
-	Users   map[string]bool // 所有已加入该白板的用户
-}
-
 // 默认页面不可被删除,默认加入时进入该页面
 const defaultPage = "默认页面"
+
+// WhiteBoard 白板
+type WhiteBoard struct {
+	Name    string           // 白板名称
+	Creator *User            // 创建者
+	Lock    bool             // 锁定
+	Pages   map[string]Page  // 白板所有页面的内容
+	Users   map[string]*User // 所有已加入该白板的用户
+}
 
 // Page 页面内容
 type Page = map[int]Element
@@ -33,10 +33,10 @@ func init() {
 
 // 给该Board的所有用户发送信息
 func (board *WhiteBoard) sendMessageToAll(msg *Message, page string, expectUser string) {
-	for name := range board.Users {
+	for _, user := range board.Users {
 		// page为""则为全局信息
-		if (Users[name].Page == page || page == "") && name != expectUser {
-			Users[name].sendMessage(msg)
+		if (user.Page == page || page == "") && user.Name != expectUser {
+			user.sendMessage(msg)
 		}
 	}
 }
@@ -82,7 +82,7 @@ func (board *WhiteBoard) readConfigFromJson(pageJson interface{}, page string) {
 }
 
 // 修改锁定模式
-func (board *WhiteBoard) setLock(lock bool) {
+func (board *WhiteBoard) setLock(lock bool, page string) {
 	board.Lock = lock
 	// 通知所有用户锁定/解锁白板
 	board.sendMessageToAll(&Message{
@@ -90,21 +90,25 @@ func (board *WhiteBoard) setLock(lock bool) {
 		Value:   lock,
 		Success: true,
 	}, "", "")
+	if lock {
+		// 锁定时同步所有人的当前页面
+		board.setAllUserBoard(page)
+	}
 }
 
 // 添加页面
-func (board *WhiteBoard) addPage(pageName string, userName string) bool {
-	if _, ok := board.Pages[pageName]; ok {
+func (board *WhiteBoard) addPage(page string, user string) bool {
+	if _, ok := board.Pages[page]; ok {
 		// 页面已存在
 		return false
 	}
-	board.Pages[pageName] = map[int]Element{}
+	board.Pages[page] = map[int]Element{}
 	// 通知所有用户添加页面
 	board.sendMessageToAll(&Message{
 		Action:  "addPage",
-		Value:   pageName,
+		Value:   page,
 		Success: true,
-	}, "", userName)
+	}, "", user)
 	return true
 }
 
@@ -116,4 +120,11 @@ func (board *WhiteBoard) removePage(name string) {
 		Value:   name,
 		Success: true,
 	}, "", "")
+}
+
+// 设置所有用户的当前页面
+func (board *WhiteBoard) setAllUserBoard(page string) {
+	for _, user := range board.Users {
+		user.setPage(page)
+	}
 }

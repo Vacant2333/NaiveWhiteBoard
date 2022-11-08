@@ -70,7 +70,7 @@ func (user *User) receiveMessage() {
 					Name:    boardName,
 					Creator: user,
 					Pages:   map[string]Page{},
-					Users:   map[string]bool{},
+					Users:   map[string]*User{},
 				}
 				// 初始化默认页面(第一页)
 				Boards[boardName].Pages[defaultPage] = make(map[int]Element)
@@ -131,7 +131,7 @@ func (user *User) receiveMessage() {
 			// 设置锁定模式,只有创建者可以Lock
 			if user == user.Board.Creator {
 				// 用户是创建者,执行指令
-				user.Board.setLock(msg.Value.(bool))
+				user.Board.setLock(msg.Value.(bool), user.Page)
 			} else {
 				// 用户不是创建者
 				reply = &Message{
@@ -150,6 +150,10 @@ func (user *User) receiveMessage() {
 		case "setPage":
 			// 用户请求切换页面
 			user.setPage(msg.Value.(string))
+			if user.Board.Lock {
+				// 锁定时同步当前页面
+				user.Board.setAllUserBoard(msg.Value.(string))
+			}
 		case "removePage":
 			// 用户请求删除页面
 			pageName := msg.Value.(string)
@@ -193,7 +197,7 @@ func (user *User) joinWhiteBoard(boardName string) bool {
 		return false
 	}
 	// 把该用户存入到白板中
-	Boards[boardName].Users[user.Name] = true
+	Boards[boardName].Users[user.Name] = user
 	// 设置用户所属白板,默认页面
 	user.Board = Boards[boardName]
 	// 发送所有的页面和设置当前页面
