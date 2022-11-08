@@ -96,7 +96,7 @@ document.onkeydown = function (e) {
                 canvas.remove(canvas.getElementById(target.id));
                 ws.sendMessage("removeElement", target.id);
             });
-            canvas.discardActiveObject(null);
+            canvas.discardActiveObject();
         }
     }
 };
@@ -194,17 +194,12 @@ canvas.setLock = function (lock, sendTip) {
         if(sendTip) {
             tip("白板已锁定");
         }
-        // 保存已选内容的数据后清空
-        canvas.activeTemp = canvas._activeObject;
-        canvas._activeObject = null;
+        // 清空已选内容
+        canvas.discardActiveObject();
     } else {
         $("#lock").text("lock_open");
         if(sendTip) {
             tip("白板已解锁");
-        }
-        // 读取已选内容
-        if(canvas.activeTemp !== null) {
-            canvas.setActiveObject(canvas.activeTemp);
         }
     }
     canvas.requestRenderAll();
