@@ -3,6 +3,8 @@ const defaultPage = "默认页面";
 setBoardNameValue();
 // 清空顶部Page栏
 clearPages();
+// 粘贴板
+let _clipboard;
 // 初始化画布
 let canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
@@ -259,6 +261,44 @@ $("#add_page").click(function () {
         ws.sendMessage("addPage", name.toString());
     }
 });
+// 复制
+document.oncopy = function () {
+    // 将复制的对象保存
+    canvas.getActiveObject().clone(function(cloned) {
+        _clipboard = cloned;
+    });
+}
+// 粘贴
+document.onpaste = function () {
+    _clipboard.clone(function(clonedObj) {
+        canvas.discardActiveObject();
+        clonedObj.set({
+            left: clonedObj.left + 20,
+            top: clonedObj.top + 20,
+            evented: true,
+        });
+        if(clonedObj.type === 'activeSelection') {
+            // 复制的是一组对象
+            clonedObj.canvas = canvas;
+            clonedObj.forEachObject(function(obj) {
+                // 需要新给一个ID,不然会覆盖
+                obj.id = randId();
+                canvas.add(obj);
+                ws.sendMessage("modifyElement", objToMap(obj));
+            });
+            clonedObj.setCoords();
+        } else {
+            // 复制的是单个对象,需要新给一个ID,不然会覆盖
+            clonedObj.id = randId();
+            canvas.add(clonedObj);
+            ws.sendMessage("modifyElement", objToMap(clonedObj));
+        }
+        _clipboard.top += 20;
+        _clipboard.left += 20;
+        canvas.setActiveObject(clonedObj);
+        canvas.requestRenderAll();
+    });
+}
 
 /* WebSocket对象 */
 let ws;
