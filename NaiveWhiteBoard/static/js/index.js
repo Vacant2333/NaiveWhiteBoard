@@ -252,15 +252,17 @@ $("#fullscreen").click(function () {
         });
     }
 });
-// 设定锁定模式
+// 用户请求设定锁定模式
 $("#lock").click(function () {
     // 如果目前是Lock状态,value就是False,也就是解锁,如果不是,就是锁定
     ws.sendMessage("lockBoard", $("#lock").text() !== "lock")
 });
-// 添加新页面
+// 用户请求添加新页面
 $("#add_page").click(function () {
-    // todo:page name
-    ws.sendMessage("addPage", randId().toString());
+    let name = prompt("请输入新页面的名称:");
+    if(name !== null && name !== "") {
+        ws.sendMessage("addPage", name.toString());
+    }
 });
 
 /* WebSocket对象 */

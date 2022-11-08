@@ -14,7 +14,6 @@ Demo: [http://blog.vacant.zone:8000/?boardName=100](http://blog.vacant.zone:8000
 TODO:
 1. 铅笔
 2. 直线
-3. 添加页面(带名字)
 4. 元素样式
 5. 重构架构
 6. 复制粘贴
