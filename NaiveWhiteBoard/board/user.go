@@ -31,7 +31,7 @@ func AddUser(name string, ws *websocket.Conn) {
 		Name:      name,
 		WebSocket: ws,
 	}
-	// 持续读取从用户发来的信息
+	// 持续接收用户发的信息
 	go Users[name].receiveMessage()
 }
 
@@ -40,7 +40,7 @@ func (user *User) receiveMessage() {
 	defer func() {
 		if err := recover(); err != nil {
 			// 错误恢复,打印调用栈
-			fmt.Println("error =", err)
+			fmt.Println("Error recover:", err)
 			debug.PrintStack()
 		}
 	}()
@@ -51,14 +51,15 @@ func (user *User) receiveMessage() {
 			// 这里会捕捉到WebSocket断开
 			break
 		}
-		// 解析msg
+		// 解析用户发来的信息
 		var msg Message
 		err = json.Unmarshal(m, &msg)
 		if err != nil {
-			fmt.Printf("unmarshal message fail! err:[%v]", err)
+			fmt.Printf("Unmarshal message[%v] fail! err:[%v]", m, err)
 			break
 		}
 		var reply *Message
+		// 根据用户发送的Action处理
 		switch msg.Action {
 		case "createWhiteBoard":
 			// 创建白板
@@ -177,7 +178,7 @@ func (user *User) receiveMessage() {
 	// 关闭WebSocket
 	err := user.WebSocket.Close()
 	if err != nil {
-		fmt.Printf("close websocket fail! %v\n", err)
+		fmt.Printf("Close websocket fail! %v\n", err)
 	}
 }
 
@@ -186,7 +187,7 @@ func (user *User) sendMessage(msg *Message) {
 	content, _ := json.Marshal(msg)
 	err := user.WebSocket.WriteMessage(websocket.TextMessage, content)
 	if err != nil {
-		fmt.Printf("reply[%v] to user[%v] fail!", msg, user)
+		fmt.Printf("Reply[%v] to user[%v] fail!", msg, user)
 	}
 }
 

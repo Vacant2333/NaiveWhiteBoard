@@ -29,11 +29,15 @@ func main() {
 		//升级GET请求为WebSocket协议
 		ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
-			fmt.Printf("connect to %v fail! %v\n", c.RemoteIP(), err)
+			fmt.Printf("Connect to %v fail! %v\n", c.RemoteIP(), err)
 			return
 		}
 		// 连接成功,保存这个用户后持续接受来自用户的消息
 		board.AddUser(ws.RemoteAddr().String(), ws)
 	})
-	router.Run("0.0.0.0:8000")
+	err := router.Run("0.0.0.0:8000")
+	if err != nil {
+		fmt.Printf("Start server fail! %v\n", err)
+		return
+	}
 }
