@@ -1,12 +1,21 @@
 const defaultPage = "默认页面";
-// 从URL读白板名到输入框内
-setBoardNameValue();
-// 清空顶部Page栏
-clearPages();
 // 粘贴板
 let _clipboard;
 // 初始化画布
-let canvas = new fabric.Canvas('board', {
+let canvas;
+// WebSocket连接
+let ws;
+// 初始化
+$(document).ready(function () {
+    // 从URL读白板名到输入框内
+    setBoardNameValue();
+    // 清空顶部Page栏
+    clearPages();
+    // 建立WebSocket连接
+    initWebSocket();
+});
+// 初始化画布
+canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
     height: window.innerHeight,
     backgroundColor: "#f2f2f2",
@@ -118,11 +127,14 @@ canvas.addElement = function (type) {
     }
     let ele;
     switch(type) {
-        case "Rect":
-            ele = new fabric.Rect();
+        case "Line":
+            ele = new fabric.Line();
             break;
         case "Circle":
             ele = new fabric.Circle({radius: 50});
+            break;
+        case "Rect":
+            ele = new fabric.Rect();
             break;
         case "Triangle":
             ele = new fabric.Triangle();
@@ -308,9 +320,7 @@ document.onpaste = function () {
     });
 }
 
-/* WebSocket对象 */
-let ws;
-initWebSocket();
+/* WebSocket */
 // 初始化WebSocket,放在function中才能实现重连
 function initWebSocket() {
     ws = new WebSocket("ws://" + window.location.host + "/connect");
@@ -336,8 +346,7 @@ function initWebSocket() {
                     // 创建成功,进入主界面
                     setLoginFormDisplay(false, false);
                     // Value为白板名称,修改当前URL用于分享
-                    setUrl(reply["Value"])
-                    tip("白板创建成功!");
+                    setUrl(reply["Value"]);
                 } else {
                     tip("白板已存在,您可加入该白板");
                 }
@@ -349,7 +358,6 @@ function initWebSocket() {
                     setLoginFormDisplay(false, false);
                     // Value为白板名称,修改当前URL用于分享
                     setUrl(reply["Value"]);
-                    tip("加入白板成功!");
                 } else {
                     tip("白板不存在,您可创建该白板");
                 }

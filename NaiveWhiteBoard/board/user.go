@@ -20,9 +20,9 @@ type User struct {
 
 // Message WebSocket信息格式
 type Message struct {
-	Action  string // 操作名称
-	Value   interface{}
-	Success bool // 指令是否成功
+	Action  string      // 操作名称
+	Value   interface{} // 值
+	Success bool        // 指令是否成功
 }
 
 // AddUser 添加一个用户
@@ -45,7 +45,7 @@ func (user *User) receiveMessage() {
 		}
 	}()
 	for {
-		// 接收来自用户的一条信息
+		// 接收来自用户的信息
 		_, m, err := user.WebSocket.ReadMessage()
 		if err != nil {
 			// 这里会捕捉到WebSocket断开
@@ -152,7 +152,7 @@ func (user *User) receiveMessage() {
 			user.setPage(msg.Value.(string))
 			if user.Board.Lock {
 				// 锁定时同步当前页面
-				user.Board.setAllUserBoard(msg.Value.(string))
+				user.Board.setAllUserPage(msg.Value.(string))
 			}
 		case "removePage":
 			// 用户请求删除页面

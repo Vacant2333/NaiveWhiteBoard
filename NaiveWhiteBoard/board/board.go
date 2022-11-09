@@ -4,14 +4,14 @@ import (
 	"strconv"
 )
 
-// 默认页面不可被删除,默认加入时进入该页面
+// 默认页面(不可被删除,默认加入该页面)
 const defaultPage = "默认页面"
 
 // WhiteBoard 白板
 type WhiteBoard struct {
 	Name    string           // 白板名称
-	Creator *User            // 创建者
-	Lock    bool             // 锁定
+	Creator *User            // 白板创建者
+	Lock    bool             // 是否已锁定(不可编辑,且同步当前页面)
 	Pages   map[string]Page  // 白板所有页面的内容
 	Users   map[string]*User // 所有已加入该白板的用户
 }
@@ -32,10 +32,10 @@ func init() {
 }
 
 // 给该Board的所有用户发送信息
-func (board *WhiteBoard) sendMessageToAll(msg *Message, page string, expectUser string) {
+func (board *WhiteBoard) sendMessageToAll(msg *Message, page string, exceptUser string) {
 	for _, user := range board.Users {
-		// page为""则为全局信息
-		if (user.Page == page || page == "") && user.Name != expectUser {
+		// page为""则发送给所有人,除了exceptUser
+		if (user.Page == page || page == "") && user.Name != exceptUser {
 			user.sendMessage(msg)
 		}
 	}
@@ -92,12 +92,12 @@ func (board *WhiteBoard) setLock(lock bool, page string) {
 	}, "", "")
 	if lock {
 		// 锁定时同步所有人的当前页面
-		board.setAllUserBoard(page)
+		board.setAllUserPage(page)
 	}
 }
 
 // 添加页面
-func (board *WhiteBoard) addPage(page string, user string) bool {
+func (board *WhiteBoard) addPage(page string, actionUser string) bool {
 	if _, ok := board.Pages[page]; ok {
 		// 页面已存在
 		return false
@@ -108,7 +108,7 @@ func (board *WhiteBoard) addPage(page string, user string) bool {
 		Action:  "addPage",
 		Value:   page,
 		Success: true,
-	}, "", user)
+	}, "", actionUser)
 	return true
 }
 
@@ -123,7 +123,7 @@ func (board *WhiteBoard) removePage(name string) {
 }
 
 // 设置所有用户的当前页面
-func (board *WhiteBoard) setAllUserBoard(page string) {
+func (board *WhiteBoard) setAllUserPage(page string) {
 	for _, user := range board.Users {
 		user.setPage(page)
 	}
