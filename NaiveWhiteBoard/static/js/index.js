@@ -209,6 +209,10 @@ canvas.setLock = function (lock, sendTip) {
 canvas.isLock = function () {
     return $("#lock").text() === "lock";
 }
+// 下载白板图片
+$("#downloadImg").click(function () {
+    downloadFileFromBlob(canvas.toSVG(), "page.svg", false);
+});
 // 下载当前页面配置
 $("#downloadPage").click(function () {
     ws.sendMessage("downloadPage");
@@ -364,7 +368,7 @@ function initWebSocket() {
                 break;
             case "downloadPage":
                 // 下载当前页面的配置
-                downloadFileFromBlob(reply["Value"], "page.json");
+                downloadFileFromBlob(reply["Value"], "page.json", true);
                 break;
             case "lockBoard":
                 // 锁定白板
@@ -459,8 +463,11 @@ function setLoginFormDisplay(mask, join) {
     }
 }
 // 下载文件
-function downloadFileFromBlob(data, fileName) {
-    let blobUrl = window.URL.createObjectURL(new Blob([JSON.stringify(data)]))
+function downloadFileFromBlob(data, fileName, toJSON) {
+    if(toJSON) {
+        data = JSON.stringify(data);
+    }
+    let blobUrl = window.URL.createObjectURL(new Blob([data]))
     let link = document.createElement("a")
     link.download = fileName
     link.style.display = "none"
