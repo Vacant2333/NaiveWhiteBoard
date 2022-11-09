@@ -48,8 +48,7 @@ canvas.on('mouse:wheel', function (opt){
     opt.e.stopPropagation();
 });
 // 建立多选时状态改变时同步
-canvas.on('selection:created', onSelectionCreated);
-function onSelectionCreated() {
+canvas.on('selection:created', function () {
     let group = canvas.getActiveObject();
     if(group != null && group._objects != null && group._objects.length > 1) {
         // 建立多选时给多选对象添加改变事件
@@ -59,7 +58,7 @@ function onSelectionCreated() {
             }
         });
     }
-}
+});
 // 右键拖拽移动画布
 canvas.on('mouse:down:before', function(opt) {
     if(opt.e.button === 2) {
@@ -288,14 +287,15 @@ document.onpaste = function () {
                 // 需要新给一个ID,不然会覆盖
                 obj.id = randId();
                 canvas.add(obj);
-                ws.sendMessage("modifyElement", objToMap(obj));
+                ws.sendMessage("modifyElement", obj);
             });
             clonedObj.setCoords();
         } else {
             // 复制的是单个对象,需要新给一个ID,不然会覆盖
             clonedObj.id = randId();
+            setModifyEvent(clonedObj, false);
             canvas.add(clonedObj);
-            ws.sendMessage("modifyElement", objToMap(clonedObj));
+            ws.sendMessage("modifyElement", clonedObj);
         }
         _clipboard.top += 20;
         _clipboard.left += 20;
@@ -532,6 +532,7 @@ function setActivePage(name) {
             pageEle.classList.add("page-select");
         }
     }
+    canvas.discardActiveObject();
     // 不能在这里设置锁定状态,页面数据还没到
 }
 // 清空顶部Page栏
