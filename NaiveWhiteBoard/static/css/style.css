@@ -98,7 +98,7 @@ html {
 }
 /* 已选中的Page */
 .page-select {
-    background-color: #bdbdbd !important;
+    background-color: #bdbdbdad !important;
 }
 /* 关闭页面按钮 */
 span.page-close {
