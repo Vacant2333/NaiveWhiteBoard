@@ -22,6 +22,8 @@
         <span class="page-add material-symbols-outlined" id="add_page">add_circle</span>
     </div>
     <div class="controls mdl-shadow--3dp" style="top: 35px">
+        <span class="material-symbols-outlined tool" id="pencil" onclick="pencilMode()">edit</span>
+        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="pencil">铅笔</div>
         <span class="material-symbols-outlined tool" id="line" onclick="canvas.addElement('Line')">straight</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="line">直线</div>
         <span class="material-symbols-outlined tool" id="circle" onclick="canvas.addElement('Circle')">circle</span>
@@ -33,13 +35,13 @@
         <span class="material-symbols-outlined tool" id="itext" onclick="canvas.addElement('IText')">text_fields</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="itext">文字框</div>
     </div>
-    <div class="controls mdl-shadow--3dp" style="top: 240px;">
+    <div class="controls mdl-shadow--3dp" style="top: 280px;">
         <span class="material-symbols-outlined tool" id="undo">undo</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="undo">撤销</div>
         <span class="material-symbols-outlined tool" id="redo">redo</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="redo">重做</div>
     </div>
-    <div class="controls mdl-shadow--3dp" style="top: 325px;">
+    <div class="controls mdl-shadow--3dp" style="top: 365px;">
         <span class="material-symbols-outlined tool" id="lock">lock_open</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="lock">锁定</div>
     </div>

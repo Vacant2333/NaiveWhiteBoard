@@ -370,6 +370,23 @@ $("#strokeWidth").change(function (e) {
 $("#opacity").change(function (e) {
     updateElementStyle("opacity", parseInt(e.target.value)/100);
 });
+// 开启,关闭铅笔模式
+function pencilMode() {
+    let pencil = $("#pencil");
+    if(canvas.isDrawingMode) {
+        pencil.removeClass("select");
+    } else {
+        pencil.addClass("select");
+    }
+    canvas.isDrawingMode = !canvas.isDrawingMode
+}
+canvas.on("object:added", function (e) {
+    if(e.target.type === "path" && e.target.id == null) {
+        e.target.id = randId();
+        setModifyEvent(e.target, false);
+        ws.sendMessage("modifyElement", e.target);
+    }
+})
 
 
 /* WebSocket */
@@ -495,6 +512,7 @@ function joinWhiteBoard() {
         tip("请输入白板名称");
     }
 }
+
 
 /* 公用方法 */
 // 推送底部提示

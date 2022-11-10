@@ -140,6 +140,10 @@ span.tool {
     margin: 7px;
     font-size: 26px;
 }
+/* 已选中的功能按钮(铅笔) */
+span.select {
+    color: #2196f3;
+}
 /* 白板 */
 .board {
     width: 100%;
