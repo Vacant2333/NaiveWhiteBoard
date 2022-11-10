@@ -167,6 +167,13 @@ func (user *User) receiveMessage() {
 			} else {
 				user.Board.removePage(pageName)
 			}
+		case "getUserCount":
+			// 获取当前在线人数
+			reply = &Message{
+				Action:  "getUserCount",
+				Value:   len(user.Board.Users),
+				Success: true,
+			}
 		}
 		if reply != nil {
 			// 回复用户

@@ -10,6 +10,8 @@ let clipboard;
 let canvas;
 // WebSocket连接
 let ws;
+// 持续获取在线人数的Timer
+let userCountTimerId;
 // 初始化
 $(document).ready(function () {
     // 从URL读白板名到输入框内
@@ -414,11 +416,9 @@ $("#pencilColor").change(function (e) {
 $("#pencilWidth").change(function (e) {
     canvas.freeDrawingBrush.width = parseInt(e.target.value);
 });
+// 右下角帮助
 $("#help").click(function () {
-    tip("         退格键删除元素,\n" +
-        "            Ctrl+C/Command+C复制,\n" +
-        "            Ctrl+V/Command+V粘贴,\n" +
-        "            右键移动画布,滚轮缩放画布.");
+    tip("退格键删除元素,Ctrl+C/Command+C复制,Ctrl+V/Command+V粘贴,右键移动画布,滚轮缩放画布.");
 });
 
 
@@ -435,6 +435,7 @@ function initWebSocket() {
         setLoginFormDisplay(true, false);
         // 定时重连
         setTimeout(initWebSocket, 2000);
+        clearInterval(userCountTimerId);
     };
     // 接受来自服务端的信息
     ws.onmessage = function(e) {
@@ -449,6 +450,7 @@ function initWebSocket() {
                     setLoginFormDisplay(false, false);
                     // Value为白板名称,修改当前URL用于分享
                     setUrl(reply["Value"]);
+                    startGetUserCountTimer();
                 } else {
                     tip("白板已存在,您可加入该白板");
                 }
@@ -460,6 +462,7 @@ function initWebSocket() {
                     setLoginFormDisplay(false, false);
                     // Value为白板名称,修改当前URL用于分享
                     setUrl(reply["Value"]);
+                    startGetUserCountTimer();
                 } else {
                     tip("白板不存在,您可创建该白板");
                 }
@@ -510,6 +513,9 @@ function initWebSocket() {
                     tip("删除失败,白板已锁定或尝试删除默认页面");
                 }
                 break;
+            case "getUserCount":
+                // 获得在线人数的回复
+                $("#userCount").text(reply["Value"]);
         }
     };
     // 给服务端发送信息
@@ -702,4 +708,14 @@ function updateElementStyle(key, value) {
         ws.sendMessage("modifyElement", obj);
         canvas.requestRenderAll();
     }
+}
+// 启动持续获取在线人数计时器
+function startGetUserCountTimer() {
+    // 页面可能断开连接后重连,要重启计时器
+    if(userCountTimerId != null) {
+        clearInterval(userCountTimerId);
+    }
+    userCountTimerId = setInterval(function () {
+        ws.sendMessage("getUserCount");
+    }, 500);
 }
