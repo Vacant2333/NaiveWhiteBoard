@@ -273,7 +273,12 @@ $("#lock").click(function () {
 $("#add_page").click(function () {
     let name = prompt("请输入新页面的名称:");
     if(name !== null && name !== "") {
-        ws.sendMessage("addPage", name.toString());
+        if(!checkName(name)) {
+            ws.sendMessage("addPage", name.toString());
+        } else {
+            // 字符串验证失败
+            tip("名称不可以包含特殊字符,可包含!_-");
+        }
     }
 });
 // 复制
@@ -421,7 +426,11 @@ function initWebSocket() {
 function createWhiteBoard() {
     let boardName = $("#boardName").val();
     if(boardName.length > 0) {
-        ws.sendMessage("createWhiteBoard", boardName);
+        if(!checkName(boardName)) {
+            ws.sendMessage("createWhiteBoard", boardName);
+        } else {
+            tip("名称不可以包含特殊字符,可包含!_-");
+        }
     } else {
         tip("请输入白板名称");
     }
@@ -430,7 +439,11 @@ function createWhiteBoard() {
 function joinWhiteBoard() {
     let boardName = $("#boardName").val();
     if(boardName.length > 0) {
-        ws.sendMessage("joinWhiteBoard", boardName);
+        if(!checkName(boardName)) {
+            ws.sendMessage("joinWhiteBoard", boardName);
+        } else {
+            tip("名称不可以包含特殊字符,可包含!_-");
+        }
     } else {
         tip("请输入白板名称");
     }
@@ -567,4 +580,10 @@ function removePage(name) {
             pageEle.remove();
         }
     }
+}
+// 检查字符串(创建白板/添加页面)
+function checkName(s)
+{
+    let pattern = new RegExp("[`@#$^&*(){}':;,\\[\\].<>《》/?~！￥…（）—|【】‘；：”“。，、？ ]")
+    return pattern.test(s);
 }
