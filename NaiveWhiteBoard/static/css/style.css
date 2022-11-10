@@ -43,13 +43,25 @@ html {
     background-color: white;
     border-radius: 6px;
 }
-/* 页面区 */
+/* 切换页面区 */
 .controls.top {
     width: 100%;
     left: 0;
     height: 30px;
     border-radius: 0;
     background-color: #eeeeee;
+}
+/* 自定义窗口 */
+.customize {
+    width: 200px;
+    height: 100px;
+    right: 5px;
+    z-index: 10;
+    position: absolute;
+    display: inline-block;
+    background-color: white;
+    border-radius: 10px;
+    top: 35px;
 }
 /* 添加页面动画 */
 @keyframes add

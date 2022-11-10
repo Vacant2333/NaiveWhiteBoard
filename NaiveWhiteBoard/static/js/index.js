@@ -1,6 +1,9 @@
 const defaultPage = "默认页面";
+// 自定义区(默认隐藏)
+let customize = $(".customize");
+customize.toggle();
 // 粘贴板
-let _clipboard;
+let clipboard;
 // 初始化画布
 let canvas;
 // WebSocket连接
@@ -29,7 +32,7 @@ fabric.Object.prototype.objectCaching = false;
 
 /* 功能 */
 // 分享白板
-let clipboard = new ClipboardJS('#share', {
+new ClipboardJS('#share', {
     // 通过target指定要复印的节点
     text: function() {
         tip("已复制链接,快分享给好友吧!");
@@ -60,12 +63,23 @@ canvas.on('mouse:wheel', function (opt){
 canvas.on('selection:created', function () {
     let group = canvas.getActiveObject();
     if(group != null && group._objects != null && group._objects.length > 1) {
-        // 建立多选时给多选对象添加改变事件
+        // 选中了多个元素,建立多选时给多选对象添加改变事件
         group.on("modified", function () {
             for(let ele of canvas.getActiveObjects()) {
                 ws.sendMessage("modifyElement", objToMap(ele));
             }
         });
+    } else if(group != null && group.id != null) {
+        // 选中的是单个元素
+        customize.toggle(500);
+    }
+});
+// 取消选中
+canvas.on("before:selection:cleared", function () {
+    let group = canvas.getActiveObject();
+    if(group != null && group.id != null) {
+        // 选中的是单个元素
+        customize.toggle(500);
     }
 });
 // 右键拖拽移动画布
@@ -285,16 +299,16 @@ $("#add_page").click(function () {
 document.oncopy = function () {
     // 将复制的对象保存
     canvas.getActiveObject().clone(function(cloned) {
-        _clipboard = cloned;
+        clipboard = cloned;
     });
-}
+};
 // 粘贴
 document.onpaste = function () {
     if(canvas.isLock()) {
         tip("白板已锁定");
         return;
     }
-    _clipboard.clone(function(clonedObj) {
+    clipboard.clone(function(clonedObj) {
         canvas.discardActiveObject();
         clonedObj.set({
             left: clonedObj.left + 20,
@@ -318,12 +332,24 @@ document.onpaste = function () {
             canvas.add(clonedObj);
             ws.sendMessage("modifyElement", clonedObj);
         }
-        _clipboard.top += 20;
-        _clipboard.left += 20;
+        clipboard.top += 20;
+        clipboard.left += 20;
         canvas.setActiveObject(clonedObj);
         canvas.requestRenderAll();
     });
-}
+};
+// 修改填充色
+$("#fillColor").change(function (e) {
+    let actionObj = canvas.getActiveObject();
+    if(actionObj != null) {
+        actionObj.setOptions({
+            fill: e.target.value,
+        });
+        ws.sendMessage("modifyElement", actionObj);
+        canvas.requestRenderAll();
+    }
+});
+
 
 /* WebSocket */
 // 初始化WebSocket,放在function中才能实现重连
