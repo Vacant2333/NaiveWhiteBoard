@@ -80,10 +80,15 @@
             铅笔粗细:<input class="mdl-slider mdl-js-slider" id="pencilWidth" type="range" min="0" max="25" value="2">
         </div>
     </div>
+    <!-- 人数显示 -->
+    <span class="users mdl-shadow--3dp mdl-chip mdl-chip--deletable">
+        <span class="mdl-chip__text">当前在线:<span>5</span>人</span>
+        <button type="button" class="mdl-chip__action" id="help"><i class="material-icons">help</i></button>
+    </span>
     <!-- 上传表单 -->
     <input type="file" id="uploadForm" style="display:none;"/>
     <!-- 新建/加入白板 -->
-    <div class="join mdl-card mdl-shadow--2dp">
+    <div class="join mdl-card mdl-shadow--3dp">
         <div class="title"></div>
         <div class="mdl-card__supporting-text">输入白板名称来创建新白板或加入朋友分享的白板~</div>
         <div class="mdl-card__actions mdl-card--border" style="padding-left: 20px;">

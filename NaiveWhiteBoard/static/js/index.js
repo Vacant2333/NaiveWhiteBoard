@@ -414,6 +414,12 @@ $("#pencilColor").change(function (e) {
 $("#pencilWidth").change(function (e) {
     canvas.freeDrawingBrush.width = parseInt(e.target.value);
 });
+$("#help").click(function () {
+    tip("         退格键删除元素,\n" +
+        "            Ctrl+C/Command+C复制,\n" +
+        "            Ctrl+V/Command+V粘贴,\n" +
+        "            右键移动画布,滚轮缩放画布.");
+});
 
 
 /* WebSocket */

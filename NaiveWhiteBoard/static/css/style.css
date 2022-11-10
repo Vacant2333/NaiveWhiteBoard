@@ -58,13 +58,21 @@ html {
     z-index: 10;
     position: absolute;
     background-color: white;
-    border-radius: 10px;
+    border-radius: 6px;
     top: 35px;
     display: none;
 }
 /* 自定义窗口的元素 */
 .option {
     margin: 5%;
+}
+/* 人数显示 */
+.users {
+    right: 5px;
+    bottom: 5px;
+    z-index: 10;
+    position: absolute;
+    background-color: #ffffff;
 }
 /* 添加页面动画 */
 @keyframes add
