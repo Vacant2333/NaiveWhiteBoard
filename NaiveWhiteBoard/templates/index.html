@@ -58,27 +58,34 @@
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="uploadPage">上传页面配置信息</div>
     </div>
     <!-- 自定义窗口 -->
-    <div class="customize mdl-shadow--3dp">
+    <div class="customize mdl-shadow--3dp" id="customize">
         <div class="option">
             填充:<input type="color" id="fillColor">
             边框:<input type="color" id="stroke">
             背景:<input type="color" id="backgroundColor">
         </div>
         <div class="option">
-            边框粗细:<input class="mdl-slider mdl-js-slider" id="strokeWidth" type="range" min="0" max="50">
+            边框(字体)粗细:<input class="mdl-slider mdl-js-slider" id="strokeWidth" type="range" min="0" max="50">
         </div>
         <div class="option">
             透明度:<input class="mdl-slider mdl-js-slider" id="opacity" type="range" min="0" max="100">
         </div>
     </div>
+    <!-- 铅笔格式 -->
+    <div class="customize mdl-shadow--3dp" id="pencilCustomize">
+        <div class="option">
+            铅笔颜色: <input type="color" id="pencilColor">
+        </div>
+        <div class="option">
+            铅笔粗细:<input class="mdl-slider mdl-js-slider" id="pencilWidth" type="range" min="0" max="25" value="2">
+        </div>
+    </div>
     <!-- 上传表单 -->
-    <input type="file" style="display:none;" id="uploadForm" />
+    <input type="file" id="uploadForm" style="display:none;"/>
     <!-- 新建/加入白板 -->
     <div class="join mdl-card mdl-shadow--2dp">
         <div class="title"></div>
-        <div class="mdl-card__supporting-text">
-            输入白板名称来创建新白板或加入朋友分享的白板~
-        </div>
+        <div class="mdl-card__supporting-text">输入白板名称来创建新白板或加入朋友分享的白板~</div>
         <div class="mdl-card__actions mdl-card--border" style="padding-left: 20px;">
             <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="createWhiteBoard()">创建</a>
             <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" onclick="joinWhiteBoard()">加入</a>

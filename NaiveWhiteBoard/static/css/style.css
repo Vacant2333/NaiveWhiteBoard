@@ -57,10 +57,10 @@ html {
     right: 5px;
     z-index: 10;
     position: absolute;
-    display: inline-block;
     background-color: white;
     border-radius: 10px;
     top: 35px;
+    display: none;
 }
 /* 自定义窗口的元素 */
 .option {

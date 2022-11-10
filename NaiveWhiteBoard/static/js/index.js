@@ -1,8 +1,9 @@
 // 默认页面(不可被删除,默认加入该页面)
 const defaultPage = "默认页面";
-// 自定义区(默认隐藏)
-let customize = $(".customize");
-customize.toggle();
+// 自定义区
+let customize = $("#customize");
+// 铅笔格式区
+let pencilCustomize = $("#pencilCustomize");
 // 粘贴板
 let clipboard;
 // 初始化画布
@@ -25,6 +26,7 @@ $(document).ready(function () {
             return window.location.href;
         }
     });
+
 });
 // 初始化画布
 canvas = new fabric.Canvas('board', {
@@ -38,6 +40,7 @@ fabric.Object.prototype.cornerColor = '#B2CCFF';
 fabric.Object.prototype.cornerSize = 9;
 fabric.Object.prototype.cornerStyle = 'circle';
 fabric.Object.prototype.objectCaching = false;
+
 
 /* 功能 */
 // 画布自适应窗口大小
@@ -72,7 +75,7 @@ canvas.on('selection:created', function () {
         });
     } else if(group != null && group.id != null) {
         // 选中的是单个元素
-        customize.toggle(500);
+        customize.show(500);
         // 更新窗口
         updateCustomize(group);
     }
@@ -82,7 +85,7 @@ canvas.on("before:selection:cleared", function () {
     let group = canvas.getActiveObject();
     if(group != null && group.id != null) {
         // 选中的是单个元素
-        customize.toggle(500);
+        customize.hide(500);
     }
 });
 // 选中更新
@@ -144,7 +147,7 @@ canvas.getElementById = function (id) {
     }
     return null;
 };
-// 添加元素
+// 功能区添加元素
 canvas.addElement = function (type) {
     if(canvas.isLock()) {
         tip("白板已锁定");
@@ -187,6 +190,10 @@ canvas.addElement = function (type) {
     setModifyEvent(ele, false);
     // 通知服务端添加元素
     ws.sendMessage("modifyElement", ele);
+    if(canvas.isDrawingMode) {
+        // 关闭铅笔模式
+        pencilMode();
+    }
     canvas.add(ele);
     canvas.setActiveObject(ele);
 };
@@ -235,6 +242,10 @@ canvas.setLock = function (lock, sendTip) {
         }
         // 清空已选内容
         canvas.discardActiveObject();
+        if(canvas.isDrawingMode) {
+            // 关闭铅笔模式
+            pencilMode();
+        }
     } else {
         $("#lock").text("lock_open");
         if(sendTip) {
@@ -372,14 +383,22 @@ $("#opacity").change(function (e) {
 });
 // 开启,关闭铅笔模式
 function pencilMode() {
+    if(canvas.isLock() && canvas.isDrawingMode === false) {
+        tip("白板已锁定");
+        return;
+    }
     let pencil = $("#pencil");
+    customize.hide(500);
     if(canvas.isDrawingMode) {
         pencil.removeClass("select");
+        pencilCustomize.hide(500);
     } else {
         pencil.addClass("select");
+        pencilCustomize.show(500);
     }
     canvas.isDrawingMode = !canvas.isDrawingMode
 }
+// 添加铅笔对象时
 canvas.on("object:added", function (e) {
     if(e.target.type === "path" && e.target.id == null) {
         e.target.id = randId();
@@ -387,6 +406,14 @@ canvas.on("object:added", function (e) {
         ws.sendMessage("modifyElement", e.target);
     }
 })
+// 修改铅笔颜色
+$("#pencilColor").change(function (e) {
+    canvas.freeDrawingBrush.color = e.target.value;
+});
+// 修改铅笔粗细
+$("#pencilWidth").change(function (e) {
+    canvas.freeDrawingBrush.width = parseInt(e.target.value);
+});
 
 
 /* WebSocket */
@@ -476,6 +503,7 @@ function initWebSocket() {
                 } else {
                     tip("删除失败,白板已锁定或尝试删除默认页面");
                 }
+                break;
         }
     };
     // 给服务端发送信息
