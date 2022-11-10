@@ -12,6 +12,8 @@ let canvas;
 let ws;
 // 持续获取在线人数的Timer
 let userCountTimerId;
+// 重连Timer
+let reconnectTimerId;
 // 初始化
 $(document).ready(function () {
     // 从URL读白板名到输入框内
@@ -28,7 +30,6 @@ $(document).ready(function () {
             return window.location.href;
         }
     });
-
 });
 // 初始化画布
 canvas = new fabric.Canvas('board', {
@@ -429,12 +430,14 @@ function initWebSocket() {
     ws.onopen = function() {
         // 连接WebSocket成功,显示登录界面(mask默认显示)
         setLoginFormDisplay(true, true);
+        clearInterval(reconnectTimerId);
     };
     ws.onclose = function () {
         tip("服务器连接失败,请稍后重试~");
         setLoginFormDisplay(true, false);
-        // 定时重连
-        setTimeout(initWebSocket, 2000);
+        // 重连
+        tryReconnect();
+        // 断开后清除定时器
         clearInterval(userCountTimerId);
     };
     // 接受来自服务端的信息
@@ -712,10 +715,15 @@ function updateElementStyle(key, value) {
 // 启动持续获取在线人数计时器
 function startGetUserCountTimer() {
     // 页面可能断开连接后重连,要重启计时器
-    if(userCountTimerId != null) {
-        clearInterval(userCountTimerId);
-    }
+    clearInterval(userCountTimerId);
     userCountTimerId = setInterval(function () {
         ws.sendMessage("getUserCount");
     }, 500);
+}
+// 尝试重连
+function tryReconnect() {
+    clearInterval(reconnectTimerId);
+    reconnectTimerId = setInterval(function () {
+        initWebSocket();
+    }, 3000);
 }
