@@ -1,9 +1,9 @@
 FROM golang:1.17.7
 
 # 工作目录
-WORKDIR /board/NaiveWhiteBoard
+WORKDIR /NaiveWhiteBoard
 # 将项目的所有文件移到该文件夹
-ADD .  /board
+ADD .  /NaiveWhiteBoard
 # 设置环境变量
 RUN go env -w GO111MODULE=on
 RUN go env -w GOPROXY=https://goproxy.cn,direct
