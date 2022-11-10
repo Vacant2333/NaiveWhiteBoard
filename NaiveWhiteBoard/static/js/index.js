@@ -1,3 +1,4 @@
+// 默认页面(不可被删除,默认加入该页面)
 const defaultPage = "默认页面";
 // 自定义区(默认隐藏)
 let customize = $(".customize");
@@ -16,12 +17,20 @@ $(document).ready(function () {
     clearPages();
     // 建立WebSocket连接
     initWebSocket();
+    // 分享白板
+    new ClipboardJS('#share', {
+        // 通过target指定要复印的节点
+        text: function() {
+            tip("已复制链接,快分享给好友吧!");
+            return window.location.href;
+        }
+    });
 });
 // 初始化画布
 canvas = new fabric.Canvas('board', {
     width: window.innerWidth,
     height: window.innerHeight,
-    backgroundColor: "#f2f2f2",
+    backgroundColor: "#e0e0e0",
     stopContextMenu: true, // 屏蔽右键
 });
 fabric.Object.prototype.transparentCorners = false;
@@ -31,14 +40,6 @@ fabric.Object.prototype.cornerStyle = 'circle';
 fabric.Object.prototype.objectCaching = false;
 
 /* 功能 */
-// 分享白板
-new ClipboardJS('#share', {
-    // 通过target指定要复印的节点
-    text: function() {
-        tip("已复制链接,快分享给好友吧!");
-        return window.location.href;
-    }
-});
 // 画布自适应窗口大小
 window.onresize = function () {
     canvas.setDimensions({
@@ -72,6 +73,8 @@ canvas.on('selection:created', function () {
     } else if(group != null && group.id != null) {
         // 选中的是单个元素
         customize.toggle(500);
+        // 更新窗口
+        updateCustomize(group);
     }
 });
 // 取消选中
@@ -80,6 +83,14 @@ canvas.on("before:selection:cleared", function () {
     if(group != null && group.id != null) {
         // 选中的是单个元素
         customize.toggle(500);
+    }
+});
+// 选中更新
+canvas.on("selection:updated", function () {
+    let group = canvas.getActiveObject();
+    if(group != null && group.id != null) {
+        // 选中的是单个元素,更新自定义区
+        updateCustomize(group);
     }
 });
 // 右键拖拽移动画布
@@ -160,7 +171,7 @@ canvas.addElement = function (type) {
     ele.set({
         // 元素的固定ID
         "id": randId(),
-        "stroke": "black",
+        "stroke": "#000000",
         "width": 200,
         "height": 200,
         "left": window.innerWidth/2-100,
@@ -170,6 +181,7 @@ canvas.addElement = function (type) {
         // 不固定到中心会导致Circle的位置对不上
         "originX": "center",
         "originY": "center",
+        "radius": 100,
     });
     // 更改事件
     setModifyEvent(ele, false);
@@ -340,14 +352,23 @@ document.onpaste = function () {
 };
 // 修改填充色
 $("#fillColor").change(function (e) {
-    let actionObj = canvas.getActiveObject();
-    if(actionObj != null) {
-        actionObj.setOptions({
-            fill: e.target.value,
-        });
-        ws.sendMessage("modifyElement", actionObj);
-        canvas.requestRenderAll();
-    }
+    updateElementStyle("fill", e.target.value);
+});
+// 修改边框颜色
+$("#stroke").change(function (e) {
+    updateElementStyle("stroke", e.target.value);
+});
+// 修改背景颜色
+$("#backgroundColor").change(function (e) {
+    updateElementStyle("backgroundColor", e.target.value);
+});
+// 修改边框粗细
+$("#strokeWidth").change(function (e) {
+    updateElementStyle("strokeWidth", parseInt(e.target.value));
+});
+// 修改透明度
+$("#opacity").change(function (e) {
+    updateElementStyle("opacity", parseInt(e.target.value)/100);
 });
 
 
@@ -608,8 +629,25 @@ function removePage(name) {
     }
 }
 // 检查字符串(创建白板/添加页面)
-function checkName(s)
-{
+function checkName(s) {
     let pattern = new RegExp("[`@#$^&*(){}':;,\\[\\].<>《》/?~！￥…（）—|【】‘；：”“。，、？ ]")
     return pattern.test(s);
+}
+// 更新自定义区的内容
+function updateCustomize(obj) {
+    $("#fillColor").val(obj.get("fill") ? obj.get("fill") : "#ffffff");
+    $("#stroke").val(obj.get("stroke") ? obj.get("stroke") : "#ffffff");
+    $("#backgroundColor").val(obj.get("backgroundColor") ? obj.get("backgroundColor") : "#ffffff");
+    // 必须通过MaterialSlider修改,不然进度条不会变
+    document.getElementById("strokeWidth").MaterialSlider.change(obj.get("strokeWidth"));
+    document.getElementById("opacity").MaterialSlider.change(obj.get("opacity")*100);
+}
+// 修改元素样式
+function updateElementStyle(key, value) {
+    let obj = canvas.getActiveObject();
+    if(obj != null) {
+        obj.set(key, value);
+        ws.sendMessage("modifyElement", obj);
+        canvas.requestRenderAll();
+    }
 }

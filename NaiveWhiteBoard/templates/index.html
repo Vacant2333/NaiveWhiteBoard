@@ -57,10 +57,17 @@
     </div>
     <!-- 自定义窗口 -->
     <div class="customize mdl-shadow--3dp">
-        <label>
-            填充颜色:
-            <input type="color" id="fillColor">
-        </label>
+        <div class="option">
+            填充:<input type="color" id="fillColor">
+            边框:<input type="color" id="stroke">
+            背景:<input type="color" id="backgroundColor">
+        </div>
+        <div class="option">
+            边框粗细:<input class="mdl-slider mdl-js-slider" id="strokeWidth" type="range" min="0" max="50">
+        </div>
+        <div class="option">
+            透明度:<input class="mdl-slider mdl-js-slider" id="opacity" type="range" min="0" max="100">
+        </div>
     </div>
     <!-- 上传表单 -->
     <input type="file" style="display:none;" id="uploadForm" />
