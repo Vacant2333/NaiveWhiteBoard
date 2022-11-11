@@ -21,7 +21,7 @@ html {
 /* 欢迎界面图片 */
 .title {
     height: 73%;
-    background: url("/static/img/welcome.jpeg") center / cover;
+    background: url("https://naivewhiteboard.oss-cn-shanghai.aliyuncs.com/img/welcome.jpeg") center / cover;
 }
 /* 屏蔽层 */
 .mask {
@@ -166,7 +166,7 @@ span.select {
     font-family: 'Material Symbols Outlined';
     font-style: normal;
     font-weight: 500;
-    src: url("/static/woff/material_outline.woff2") format('woff2');
+    src: url("https://naivewhiteboard.oss-cn-shanghai.aliyuncs.com/woff/material_outline.woff2") format('woff2');
 }
 .material-symbols-outlined {
     font-family: 'Material Symbols Outlined', serif;
