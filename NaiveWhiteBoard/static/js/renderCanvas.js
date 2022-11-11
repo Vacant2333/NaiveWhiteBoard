@@ -220,7 +220,7 @@ canvas.resetCanvas = function (data) {
     if(data != null) {
         // 遍历所有从服务器传来的Element,通过这些Element生成对象
         Object.values(data).forEach(function (element) {
-            canvas.drawElement(element)
+            canvas.drawElement(element);
         });
     }
     // 设置已锁定
@@ -237,8 +237,8 @@ canvas.drawElement = function (element) {
         // 更改事件
         setModifyEvent(ele, false);
         if(ele.matrixCache != null) {
-            ele.left = ele.matrixCache.value[4]
-            ele.top = ele.matrixCache.value[5]
+            ele.left = ele.matrixCache.value[4];
+            ele.top = ele.matrixCache.value[5];
         }
         canvas.add(ele);
     });
@@ -247,7 +247,7 @@ canvas.drawElement = function (element) {
 canvas.setLock = function (lock, sendTip) {
     for(let ele of canvas.getObjects()) {
         // 根据锁定设置是否可选中
-        ele.selectable = !lock
+        ele.selectable = !lock;
     }
     if(lock) {
         $("#lock").text("lock");

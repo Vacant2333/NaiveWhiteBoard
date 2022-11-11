@@ -99,7 +99,7 @@ $("#strokeWidth").change(function (e) {
 $("#opacity").change(function (e) {
     updateElementStyle("opacity", parseInt(e.target.value)/100);
 });
-// 开启,关闭铅笔模式
+// 开/关铅笔模式
 function pencilMode() {
     if(canvas.isLock() && canvas.isDrawingMode === false) {
         tip("白板已锁定");
@@ -215,16 +215,16 @@ function objToMap(obj) {
     let map = {};
     for(let index in entries) {
         if(entries[index][0] !== "canvas" && entries[index][0] !== "group" && entries[index][0] !== "__eventListeners" && entries[index][0] !== "_cacheCanvas") {
-            map[entries[index][0]] = entries[index][1]
+            map[entries[index][0]] = entries[index][1];
         }
     }
-    map["type"] = obj.get("type")
-    return map
+    map["type"] = obj.get("type");
+    return map;
 }
 // 设置element的modify事件
 function setModifyEvent(obj, toMap) {
     if(obj.__eventListeners != null) {
-        obj.__eventListeners["modified"] = null
+        obj.__eventListeners["modified"] = null;
     }
     obj.on("modified", function () {
         // 通知服务端修改元素
@@ -290,7 +290,7 @@ function checkName(s) {
     let pattern = new RegExp("[`@#$^&*(){}':;,\\[\\].<>《》/?~！￥…（）—|【】‘；：”“。，、？ ]")
     return pattern.test(s);
 }
-// 更新自定义区的内容
+// 更新自定义区的内容(选中元素后)
 function updateCustomize(obj) {
     $("#fillColor").val(obj.get("fill") ? obj.get("fill") : "#ffffff");
     $("#stroke").val(obj.get("stroke") ? obj.get("stroke") : "#ffffff");
