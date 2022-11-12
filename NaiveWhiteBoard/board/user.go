@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"runtime/debug"
+	"sync"
 )
 
 // Users 所有连接到服务器的用户
@@ -16,6 +17,7 @@ type User struct {
 	WebSocket *websocket.Conn // WebSocket连接
 	Board     *WhiteBoard     // 用户所属的白板名称
 	Page      string          // 用户所在的白板下标
+	wsMutex   sync.Mutex      // WebSocker发送锁(避免同时WriteMessage)
 }
 
 // Message WebSocket信息格式
@@ -42,6 +44,8 @@ func (user *User) receiveMessage() {
 			// 错误恢复,打印调用栈
 			fmt.Println("Error recover:", err)
 			debug.PrintStack()
+			// 恢复本函数
+			go user.receiveMessage()
 		}
 	}()
 	for {
@@ -180,7 +184,7 @@ func (user *User) receiveMessage() {
 			user.sendMessage(reply)
 		}
 	}
-	// 删除该用户
+	// WebSocket断开后删除该用户
 	user.delete()
 	// 关闭WebSocket
 	err := user.WebSocket.Close()
@@ -192,7 +196,9 @@ func (user *User) receiveMessage() {
 // 发送一条消息给用户
 func (user *User) sendMessage(msg *Message) {
 	content, _ := json.Marshal(msg)
+	user.wsMutex.Lock()
 	err := user.WebSocket.WriteMessage(websocket.TextMessage, content)
+	user.wsMutex.Unlock()
 	if err != nil {
 		fmt.Printf("Reply[%v] to user[%v] fail!", msg, user)
 	}
