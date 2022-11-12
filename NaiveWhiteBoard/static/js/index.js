@@ -221,20 +221,6 @@ function objToMap(obj) {
     map["type"] = obj.get("type");
     return map;
 }
-// 设置element的modify事件
-function setModifyEvent(obj, toMap) {
-    if(obj.__eventListeners != null) {
-        obj.__eventListeners["modified"] = null;
-    }
-    obj.on("modified", function () {
-        // 通知服务端修改元素
-        if(toMap) {
-            ws.sendMessage("modifyElement", objToMap(obj));
-        } else {
-            ws.sendMessage("modifyElement", obj);
-        }
-    });
-}
 // 添加页面按钮
 function addPage(name) {
     // name作为page的id和page-name的text
