@@ -23,8 +23,8 @@ window.onresize = function () {
 // 鼠标滚轮调整缩放画布
 canvas.on('mouse:wheel', function (opt){
     let zoom = canvas.getZoom() * 0.999 ** opt.e.deltaY;
-    if (zoom > 5) zoom = 5;
-    if (zoom < 0.5) zoom = 0.5;
+    if(zoom > 5) zoom = 5;
+    if(zoom < 0.5) zoom = 0.5;
     // 以鼠标所在位置为原点缩放
     canvas.zoomToPoint({
         x: opt.e.offsetX,
@@ -144,13 +144,14 @@ document.onpaste = function () {
                 // 需要新给一个ID,不然会覆盖
                 obj.id = randId();
                 canvas.add(obj);
-                ws.sendMessage("modifyElement", obj);
+                canvas.renderAll();
+                ws.sendMessage("modifyElement", objToMap(obj));
             });
             clonedObj.setCoords();
         } else {
             // 复制的是单个对象,需要新给一个ID,不然会覆盖
             clonedObj.id = randId();
-            setModifyEvent(clonedObj, false);
+            setModifyEvent(clonedObj);
             canvas.add(clonedObj);
             ws.sendMessage("modifyElement", clonedObj);
         }
@@ -201,7 +202,7 @@ canvas.addElement = function (type) {
         "radius": 100,
     });
     // 更改事件
-    setModifyEvent(ele, false);
+    setModifyEvent(ele);
     // 通知服务端添加元素
     ws.sendMessage("modifyElement", ele);
     if(canvas.isDrawingMode) {
@@ -235,14 +236,14 @@ canvas.drawElement = function (element) {
             canvas.remove(canvas.getElementById(ele.id));
         }
         // 更改事件
-        setModifyEvent(ele, false);
+        setModifyEvent(ele);
         if(ele.matrixCache != null) {
             ele.left = ele.matrixCache.value[4];
             ele.top = ele.matrixCache.value[5];
         }
         canvas.add(ele);
     });
-}
+};
 // 设置锁定
 canvas.setLock = function (lock, sendTip) {
     for(let ele of canvas.getObjects()) {
@@ -267,16 +268,26 @@ canvas.setLock = function (lock, sendTip) {
         }
     }
     canvas.requestRenderAll();
-}
+};
 // 获得是否已锁
 canvas.isLock = function () {
     return $("#lock").text() === "lock";
-}
+};
 // 同步铅笔对象
 canvas.on("object:added", function (e) {
     if(e.target.type === "path" && e.target.id == null) {
         e.target.id = randId();
-        setModifyEvent(e.target, false);
+        setModifyEvent(e.target);
         ws.sendMessage("modifyElement", e.target);
     }
-})
+});
+// 设置element的modify事件
+function setModifyEvent(obj) {
+    if(obj.__eventListeners != null) {
+        obj.__eventListeners["modified"] = null;
+    }
+    obj.on("modified", function () {
+        // 通知服务端修改元素
+        ws.sendMessage("modifyElement", obj);
+    });
+}
