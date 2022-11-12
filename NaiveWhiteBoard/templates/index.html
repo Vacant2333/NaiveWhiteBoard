@@ -18,10 +18,11 @@
     <link href="/static/css/style.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-    <!-- 工具栏 -->
-    <div class="controls top mdl-shadow--2dp">
+    <!-- 页面区 -->
+    <div class="controls top">
         <span class="page-add material-symbols-outlined" id="add_page">add_circle</span>
     </div>
+    <!-- 工具栏 -->
     <div class="controls mdl-shadow--3dp" style="top: 35px">
         <span class="material-symbols-outlined tool" id="pencil" onclick="pencilMode()">edit</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="pencil">铅笔</div>
@@ -37,12 +38,6 @@
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="itext">文字框</div>
     </div>
     <div class="controls mdl-shadow--3dp" style="top: 280px;">
-        <span class="material-symbols-outlined tool" id="undo">undo</span>
-        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="undo">撤销</div>
-        <span class="material-symbols-outlined tool" id="redo">redo</span>
-        <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="redo">重做</div>
-    </div>
-    <div class="controls mdl-shadow--3dp" style="top: 365px;">
         <span class="material-symbols-outlined tool" id="lock">lock_open</span>
         <div class="mdl-tooltip mdl-tooltip--right" data-mdl-for="lock">锁定</div>
     </div>
