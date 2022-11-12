@@ -22,7 +22,7 @@ type Page = map[int]Element
 // Element 元素内容
 type Element = map[string]interface{}
 
-// Boards 所有存在服务器中的白板数据
+// Boards 存在服务器中所有的白板
 var Boards map[string]*WhiteBoard
 
 // 初始化

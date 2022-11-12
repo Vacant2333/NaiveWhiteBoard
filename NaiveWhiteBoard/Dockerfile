@@ -1,4 +1,4 @@
-FROM golang:1.17.7
+FROM golang:latest
 
 # 工作目录
 WORKDIR /NaiveWhiteBoard
