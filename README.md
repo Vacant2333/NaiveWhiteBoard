@@ -4,6 +4,8 @@ Server: Go + Gin + WebSocket<br>
 Web: JQ + Fabric.js + MDL
 
 Demo: [http://blog.vacant.zone:8000/](http://blog.vacant.zone:8000/)
+<br>
+演示视频:[https://www.bilibili.com/video/BV1Ud4y1F7eB](https://www.bilibili.com/video/BV1Ud4y1F7eB)
 
 ### **如何运行:**
 本机运行(GOPROXY用于加速下载外部库):<br>
