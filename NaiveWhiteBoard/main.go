@@ -17,7 +17,7 @@ var upGrader = websocket.Upgrader{
 
 func main() {
 	router := gin.Default()
-	// 静态文件
+	// 静态文件(css/js)
 	router.Static("static", "static")
 	// Web端访问
 	router.LoadHTMLFiles("templates/index.html")
